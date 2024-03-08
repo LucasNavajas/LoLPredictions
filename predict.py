@@ -44,11 +44,11 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     
-    team1_id = torch.tensor([72], dtype=torch.long)  # Example tensor
+    team1_id = torch.tensor([119], dtype=torch.long)  # Example tensor
     team2_id = torch.tensor([144], dtype=torch.long)
-    champions_team1 = torch.tensor([[109,112,138,142,87]], dtype=torch.long)
-    champions_team2 = torch.tensor([[140,104,130,73,80]], dtype=torch.long)
-    players_team1 = torch.tensor([[1384,582,1401,1113,23]], dtype=torch.long)
+    champions_team1 = torch.tensor([[38,151,58,54,87]], dtype=torch.long)
+    champions_team2 = torch.tensor([[20,112,130,142,104	]], dtype=torch.long)
+    players_team1 = torch.tensor([[149,1118,635,670,1338]], dtype=torch.long)
     players_team2 = torch.tensor([[560,429,220,1268,527	]], dtype=torch.long)
     
     # Call the prediction function
