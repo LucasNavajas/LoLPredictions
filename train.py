@@ -6,16 +6,16 @@ from utils.data_preprocessing import load_and_preprocess_data
 from models.match_predictor_model import MatchPredictor
 
 # Load and preprocess data
-train_dataset, test_dataset = load_and_preprocess_data('data/datasheet.csv')
+train_dataset, test_dataset = load_and_preprocess_data('data/datasheetv2.csv')
 
 # Create DataLoaders for training and testing datasets
 train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
-num_teams = 272
-num_champions = 167
-num_players = 1520
-num_regions = 22
+num_teams = 283
+num_champions = 168
+num_players = 1543
+num_regions = 31
 embedding_dim = 10
 num_numerical_features = 3
 output_dim = 2  # Assuming binary classification for win/lose

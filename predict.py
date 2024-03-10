@@ -34,10 +34,10 @@ def predict_model(model, device, team1_id, team2_id, region_id, champions_team1,
 
 if __name__ == "__main__":
     # Configuration and model parameters
-    num_teams = 272
-    num_champions = 167
-    num_players = 1520
-    num_regions = 22
+    num_teams = 283
+    num_champions = 168
+    num_players = 1543
+    num_regions = 31
     embedding_dim = 10
     num_numerical_features = 3
     output_dim = 2  # Assuming binary classification for win/lose
@@ -50,24 +50,24 @@ if __name__ == "__main__":
     device = torch.device('cpu')
     model.to(device)
 
-    team_win_rates = calculate_team_win_rates('data/datasheet.csv')
+    team_win_rates = calculate_team_win_rates('data/datasheetv2.csv')
     # Example inputs for prediction
     # Note: These values should be properly preprocessed to match your training data
-    team1_id = torch.tensor([[171]], dtype=torch.long)
-    team2_id = torch.tensor([[125]], dtype=torch.long)
-    region_id = torch.tensor([[14]], dtype=torch.long)  # Example Region ID
-    champions_team1 = torch.tensor([[109,148,138,113,129]], dtype=torch.long)
-    champions_team2 = torch.tensor([[140,151,127,123,87	]], dtype=torch.long)
-    players_team1 = torch.tensor([[1156,857,680,188,731	]], dtype=torch.long)
-    players_team2 = torch.tensor([[882,862,620,433,1066	]], dtype=torch.long)
-    bans_team1 = torch.tensor([[147,56,142,69,112]], dtype=torch.long)
-    bans_team2 = torch.tensor([[55,10,135,104,130]], dtype=torch.long)
+    team1_id = torch.tensor([[9]], dtype=torch.long)
+    team2_id = torch.tensor([[13]], dtype=torch.long)
+    region_id = torch.tensor([[1]], dtype=torch.long)  # Example Region ID
+    champions_team1 = torch.tensor([[106,104,94,142,87]], dtype=torch.long)
+    champions_team2 = torch.tensor([[39,112,51,55,10]], dtype=torch.long)
+    players_team1 = torch.tensor([[48,49,50,51,52]], dtype=torch.long)
+    players_team2 = torch.tensor([[68,69,70,71,72]], dtype=torch.long)
+    bans_team1 = torch.tensor([[156,151,15,158,69]], dtype=torch.long)
+    bans_team2 = torch.tensor([[113,147,130,109,1]], dtype=torch.long)
     # Example starting numerical_features tensor
-    days_since_latest = torch.tensor([[50]], dtype=torch.long)  # Assume batch_size=1 for simplicity
+    days_since_latest = torch.tensor([[0]], dtype=torch.long)  # Assume batch_size=1 for simplicity
 
     # Win rates calculated as per your code snippet
-    team1_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == 171, 'win_rate'].iloc[0]]], dtype=torch.float32)
-    team2_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == 125, 'win_rate'].iloc[0]]], dtype=torch.float32)
+    team1_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == 9, 'win_rate'].iloc[0]]], dtype=torch.float32)
+    team2_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == 13, 'win_rate'].iloc[0]]], dtype=torch.float32)
 
     # Concatenate the tensors to form the complete numerical_features tensor
     numerical_features = torch.cat([days_since_latest, team1_win_rate, team2_win_rate], dim=1)
