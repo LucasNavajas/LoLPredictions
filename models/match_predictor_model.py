@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class MatchPredictor(nn.Module):
-    def __init__(self, num_teams, num_champions, num_players, num_regions, embedding_dim, num_numerical_features, output_dim):
+    def __init__(self, num_teams, num_champions, num_players, num_regions, embedding_dim, num_numerical_features, output_dim, dropout_rate=0.9):
         super(MatchPredictor, self).__init__()
 
         # Define embedding sizes for teams, champions, players, regions, and bans
@@ -11,6 +11,7 @@ class MatchPredictor(nn.Module):
         self.champion_embedding = nn.Embedding(num_champions, embedding_dim)  # Used for champions and bans
         self.player_embedding = nn.Embedding(num_players, embedding_dim)
         self.region_embedding = nn.Embedding(num_regions, embedding_dim)
+        self.dropout = nn.Dropout(dropout_rate)
 
         # Calculate the total input size for the linear layer
         total_input_size = num_numerical_features + (4 * embedding_dim) + (2 * 20 * embedding_dim / 5) -30 # Adjusted formula based on your structure
@@ -67,7 +68,8 @@ class MatchPredictor(nn.Module):
             players_team1_embed, players_team2_embed,
             bans_team1_embed, bans_team2_embed
         ], dim=1)
-
+        
+        combined_features = self.dropout(combined_features)
         # Pass through the linear layer
         output = self.fc(combined_features)
         return output

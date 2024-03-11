@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
@@ -33,6 +34,10 @@ model.to(device)
 # Number of epochs
 num_epochs = 10
 
+best_val_loss = np.inf
+patience = 10  # Number of epochs to wait for improvement before stopping
+patience_counter = 0
+
 # Training loop
 for epoch in range(num_epochs):
     model.train()  # Set model to training mode
@@ -55,6 +60,7 @@ for epoch in range(num_epochs):
 # Evaluation loop
 model.eval()  # Set model to evaluation mode
 correct = 0
+val_loss = 0
 total = 0
 
 with torch.no_grad():
@@ -69,6 +75,17 @@ with torch.no_grad():
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            patience_counter = 0  # Reset counter
+            # Save model checkpoint if desired
+        else:
+            patience_counter += 1  # No improvement
+        
+        # Early stopping check
+        if patience_counter >= patience:
+            print(f"Stopping early at epoch {epoch+1}")
+            break
 
 accuracy = correct / total
 print(f'Model accuracy on the test set: {accuracy * 100:.2f}%')

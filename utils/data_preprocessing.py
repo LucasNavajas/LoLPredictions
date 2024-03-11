@@ -9,9 +9,10 @@ import numpy as np
 from torch.utils.data import Dataset
 
 class MatchDataset(Dataset):
-    def __init__(self, features, labels):
+    def __init__(self, features, labels, regions=None):  # Add an optional regions parameter
         self.features = features
         self.labels = labels
+        self.regions = regions  # Store region information
 
     def __len__(self):
         return len(self.labels)
@@ -19,8 +20,11 @@ class MatchDataset(Dataset):
     def __getitem__(self, idx):
         feature_tensor = self.features[idx]
         label_tensor = self.labels[idx]
-
+        if self.regions is not None:
+            region_tensor = self.regions[idx]  # Get region information if available
+            return feature_tensor, label_tensor, region_tensor
         return feature_tensor, label_tensor
+
 
 def calculate_team_win_rates(datasheet_path):
     datasheet = pd.read_csv(datasheet_path)
@@ -89,19 +93,19 @@ def load_and_preprocess_data(filepath):
 
     
     for role in ['Top', 'Jg', 'Mid', 'Adc', 'Supp']:
-        for team in ['1', '2']:
-            # Define the new win rate column name for clarity
-            new_column_name = f'{role}{team}ChampionWinRate'
-            
-            # Perform the merge operation with an explicit selection of columns to avoid unwanted columns
-            # Assuming 'player_id' and 'champion_id' are in the player_champion_win_rates DataFrame
-            merge_df = player_champion_win_rates[['player_id', 'champion_id', 'win_rate']].copy()
-            merge_df.rename(columns={'win_rate': new_column_name}, inplace=True)
-            
-            df = df.merge(merge_df, how='left', left_on=[f'{role}{team}ID', f'{role}{team}Champion'], right_on=['player_id', 'champion_id']).drop(['player_id', 'champion_id'], axis=1)
-            
-            # Since we're careful with the merge, we directly add the intended win rate column name
-            numerical_features.append(new_column_name)
+            for team in ['1', '2']:
+                new_column_name = f'{role}{team}ChampionWinRate'
+                merge_df = player_champion_win_rates[['player_id', 'champion_id', 'win_rate']].copy()
+                merge_df.rename(columns={'win_rate': new_column_name}, inplace=True)
+
+                # Merge and drop unnecessary columns
+                df = df.merge(merge_df, how='left', left_on=[f'{role}{team}ID', f'{role}{team}Champion'], right_on=['player_id', 'champion_id']).drop(['player_id', 'champion_id'], axis=1)
+                
+                # Fill NaN values with 0.5 for player-champion combinations without data
+                df[new_column_name].fillna(0.53, inplace=True)
+
+                # Append new win rate column name to 'numerical_features'
+                numerical_features.append(new_column_name)
 
     preprocessor = ColumnTransformer(
         transformers=[
@@ -110,10 +114,11 @@ def load_and_preprocess_data(filepath):
 
     X = df.drop('TeamWinner', axis=1)
     y = df['TeamWinner']
+    regions = torch.tensor(df['RegionID'].values, dtype=torch.long)
     X_processed = preprocessor.fit_transform(X)
 
     # Split the processed data
-    X_train, X_test, y_train, y_test = train_test_split(X_processed, y, test_size=0.25, random_state=42)
+    X_train, X_test, y_train, y_test, regions_train, regions_test = train_test_split(X_processed, y, regions, test_size=0.25, random_state=42)
 
     # Convert split data to tensors
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
@@ -121,8 +126,8 @@ def load_and_preprocess_data(filepath):
     y_train_tensor = torch.tensor(y_train.values, dtype=torch.long)
     y_test_tensor = torch.tensor(y_test.values, dtype=torch.long)
 
-    train_data = MatchDataset(X_train_tensor, y_train_tensor)
-    test_data = MatchDataset(X_test_tensor, y_test_tensor)
+    train_data = MatchDataset(X_train, y_train, regions_train)
+    test_data = MatchDataset(X_test, y_test, regions_test)
 
     # Return processed and split tensors
     return train_data, test_data
