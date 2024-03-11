@@ -48,7 +48,7 @@ def calculate_specific_player_champion_win_rate(datasheet_path, player_id, champ
     total_games = player_champion_matches.shape[0]
 
     # Calculate win rate, defaulting to 0.5 if there are no matches
-    return 0.5 if total_games == 0 else wins / total_games
+    return 0.6 if total_games == 0 else wins / total_games
 
 
 
@@ -103,21 +103,21 @@ if __name__ == "__main__":
     team_win_rates = calculate_team_win_rates('data/datasheetv2.csv')
     # Example inputs for prediction
     # Note: These values should be properly preprocessed to match your training data
-    team1_id = torch.tensor([[13]], dtype=torch.long)
-    team2_id = torch.tensor([[14]], dtype=torch.long)
+    team1_id = torch.tensor([[15]], dtype=torch.long)
+    team2_id = torch.tensor([[11]], dtype=torch.long)
     region_id = torch.tensor([[1]], dtype=torch.long)
-    champions_team1 = torch.tensor([[109,147,158,142,87				]], dtype=torch.long)
-    champions_team2 = torch.tensor([[56,151,68,113,129				]], dtype=torch.long)
-    players_team1 = torch.tensor([[68,69,70,71,72				]], dtype=torch.long)	
-    players_team2 = torch.tensor([[73,74,75,76,77				]], dtype=torch.long)
-    bans_team1 = torch.tensor([[130,94,156,138,3				]], dtype=torch.long)
-    bans_team2 = torch.tensor([[55,123,90,44,2				]], dtype=torch.long)
+    champions_team1 = torch.tensor([[1,69,88,123,87				]], dtype=torch.long)
+    champions_team2 = torch.tensor([[106,151,2,163,104				]], dtype=torch.long)
+    players_team1 = torch.tensor([[78,79,338,81,1541				]], dtype=torch.long)	
+    players_team2 = torch.tensor([[58,59,60,61,62				]], dtype=torch.long)
+    bans_team1 = torch.tensor([[55,10,44,54,138				]], dtype=torch.long)
+    bans_team2 = torch.tensor([[94,27,130,147,156				]], dtype=torch.long)
     # Example starting numerical_features tensor
     days_since_latest = torch.tensor([[0]], dtype=torch.long)  # Assume batch_size=1 for simplicity
 
     # Win rates calculated as per your code snippet
-    team1_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == 13, 'win_rate'].iloc[0]]], dtype=torch.float32)
-    team2_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == 14, 'win_rate'].iloc[0]]], dtype=torch.float32)
+    team1_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == 15, 'win_rate'].iloc[0]]], dtype=torch.float32)
+    team2_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == 11, 'win_rate'].iloc[0]]], dtype=torch.float32)
 
     datasheet_path = 'data/datasheetv2.csv'
     roles = ['Top', 'Jg', 'Mid', 'Adc', 'Supp']
