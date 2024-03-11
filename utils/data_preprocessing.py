@@ -47,16 +47,38 @@ def calculate_team_win_rates(datasheet_path):
 
     return team_performance[['team_id', 'win_rate']]
 
+def calculate_player_champion_win_rates(datasheet_path):
+    datasheet = pd.read_csv(datasheet_path)
+
+    # Initialize records for win/loss tally
+    records = []
+    for index, row in datasheet.iterrows():
+        team_winner = row['TeamWinner']
+        for team in ['1', '2']:
+            win = int(team == str(team_winner))
+            loss = 1 - win
+            for role in ['Top', 'Jg', 'Mid', 'Adc', 'Supp']:
+                player_id_col = f"{role}{team}ID"
+                champion_id_col = f"{role}{team}Champion"
+                records.append({'player_id': row[player_id_col], 'champion_id': row[champion_id_col], 'win': win, 'loss': loss})
+
+    player_champion_records = pd.DataFrame(records)
+    player_champion_performance = player_champion_records.groupby(['player_id', 'champion_id']).agg({'win': 'sum', 'loss': 'sum'}).reset_index()
+    player_champion_performance['win_rate'] = player_champion_performance['win'] / (player_champion_performance['win'] + player_champion_performance['loss'])
+
+    return player_champion_performance
+
 
 def load_and_preprocess_data(filepath):
     # Load the dataset
     df = pd.read_csv(filepath)
     team_win_rates = calculate_team_win_rates(filepath)
+    player_champion_win_rates = calculate_player_champion_win_rates(filepath)
 
     # Merge team win rates
     df = df.merge(team_win_rates, how='left', left_on='Team1ID', right_on='team_id').rename(columns={'win_rate': 'Team1WinRate'}).drop('team_id', axis=1)
     df = df.merge(team_win_rates, how='left', left_on='Team2ID', right_on='team_id').rename(columns={'win_rate': 'Team2WinRate'}).drop('team_id', axis=1)
-    # Data preprocessing
+
     df['TeamWinner'] = df['TeamWinner'] - 1
     df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%Y')
     df['DaysSinceLatest'] = (df['Date'].max() - df['Date']).dt.days
@@ -64,6 +86,23 @@ def load_and_preprocess_data(filepath):
     df.fillna(0, inplace=True)
 
     numerical_features = ['DaysSinceLatest', 'Team1WinRate', 'Team2WinRate']
+
+    
+    for role in ['Top', 'Jg', 'Mid', 'Adc', 'Supp']:
+        for team in ['1', '2']:
+            # Define the new win rate column name for clarity
+            new_column_name = f'{role}{team}ChampionWinRate'
+            
+            # Perform the merge operation with an explicit selection of columns to avoid unwanted columns
+            # Assuming 'player_id' and 'champion_id' are in the player_champion_win_rates DataFrame
+            merge_df = player_champion_win_rates[['player_id', 'champion_id', 'win_rate']].copy()
+            merge_df.rename(columns={'win_rate': new_column_name}, inplace=True)
+            
+            df = df.merge(merge_df, how='left', left_on=[f'{role}{team}ID', f'{role}{team}Champion'], right_on=['player_id', 'champion_id']).drop(['player_id', 'champion_id'], axis=1)
+            
+            # Since we're careful with the merge, we directly add the intended win rate column name
+            numerical_features.append(new_column_name)
+
     preprocessor = ColumnTransformer(
         transformers=[
             ('num', StandardScaler(), numerical_features)

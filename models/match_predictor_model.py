@@ -10,22 +10,25 @@ class MatchPredictor(nn.Module):
         self.team_embedding = nn.Embedding(num_teams, embedding_dim)
         self.champion_embedding = nn.Embedding(num_champions, embedding_dim)  # Used for champions and bans
         self.player_embedding = nn.Embedding(num_players, embedding_dim)
-        self.region_embedding = nn.Embedding(num_regions, embedding_dim)  # Embedding layer for regionID
+        self.region_embedding = nn.Embedding(num_regions, embedding_dim)
+
+        # Calculate the total input size for the linear layer
+        total_input_size = num_numerical_features + (4 * embedding_dim) + (2 * 20 * embedding_dim / 5) -30 # Adjusted formula based on your structure
+
         # Linear layer to produce output
-        self.fc = nn.Linear(93, output_dim)
+        self.fc = nn.Linear(int(total_input_size), output_dim)
 
     def forward(self, features):
-
         # Extract numerical features
-        numerical_features = features[:, :3].float()  # First 3 are numerical features
+        numerical_features = features[:, :13].float()  # First 3 are numerical features
 
         # Adjust indices for ID features based on the new order, including regionID now
-        team1_id = features[:, 3].long()
-        team2_id = features[:, 4].long()
-        region_id = features[:, 5].long()  # Handling for regionID
+        team1_id = features[:, 13].long()
+        team2_id = features[:, 14].long()
+        region_id = features[:, 15].long()  # Handling for regionID
 
         # Adjusting indices due to addition of regionID
-        champions_start = 6  # Starting index for champion IDs, adjusted due to addition of regionID
+        champions_start = 16  # Starting index for champion IDs, adjusted due to addition of regionID
         champions_end = champions_start + 10
         champions_team1 = features[:, champions_start:champions_start+5].long()
         champions_team2 = features[:, champions_start+5:champions_end].long()
