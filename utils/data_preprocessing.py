@@ -114,20 +114,18 @@ def load_and_preprocess_data(filepath):
 
     X = df.drop('TeamWinner', axis=1)
     y = df['TeamWinner']
-    regions = torch.tensor(df['RegionID'].values, dtype=torch.long)
     X_processed = preprocessor.fit_transform(X)
 
     # Split the processed data
-    X_train, X_test, y_train, y_test, regions_train, regions_test = train_test_split(X_processed, y, regions, test_size=0.25, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X_processed, y, test_size=0.25, random_state=42)
 
     # Convert split data to tensors
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
     X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
     y_train_tensor = torch.tensor(y_train.values, dtype=torch.long)
     y_test_tensor = torch.tensor(y_test.values, dtype=torch.long)
-
-    train_data = MatchDataset(X_train, y_train, regions_train)
-    test_data = MatchDataset(X_test, y_test, regions_test)
+    train_data = MatchDataset(X_train_tensor, y_train_tensor)
+    test_data = MatchDataset(X_test_tensor, y_test_tensor)
 
     # Return processed and split tensors
     return train_data, test_data

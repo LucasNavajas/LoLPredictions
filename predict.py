@@ -1,8 +1,22 @@
 import torch
+import json
 import pandas as pd
 from models.match_predictor_model import MatchPredictor
 from utils.data_preprocessing import calculate_team_win_rates
 
+
+def load_ids_from_json(filepath):
+    with open(filepath, 'r', encoding='utf-8') as file:
+        ids = json.load(file)
+        ids = {key.lower(): value for key, value in ids.items()}
+    return ids
+
+
+def get_id(name, ids):
+    # Normalize the region name to lower case to ensure case-insensitivity
+    normalized_name = name.lower()
+    # Get the region ID, return None or a custom message if not found
+    return ids.get(normalized_name, f"{name} not found")
 
 def calculate_specific_player_champion_win_rate(datasheet_path, player_id, champion_id):
     """
@@ -53,17 +67,7 @@ def calculate_specific_player_champion_win_rate(datasheet_path, player_id, champ
 
 
 def predict_model(model, device, team1_id, team2_id, region_id, champions_team1, champions_team2, players_team1, players_team2, bans_team1, bans_team2, numerical_features):
-    """
-    Predicts the outcome of matches using the trained model.
 
-    Parameters:
-    - model: The trained MatchPredictor model.
-    - device: The device to perform computation on ('cpu' or 'cuda').
-    - team1_id, team2_id, region_id, champions_team1, champions_team2, players_team1, players_team2, bans_team1, bans_team2, team1_win_rate, team2_win_rate, numerical_features: Input tensors for the model.
-
-    Returns:
-    - predictions: The predicted outcomes.
-    """
     # Ensure model is in evaluation mode
     model.eval()
 
@@ -100,24 +104,57 @@ if __name__ == "__main__":
     device = torch.device('cpu')
     model.to(device)
 
+    region_ids = load_ids_from_json('info/region_ids.json')
+    players_ids = load_ids_from_json("info/players_ids.json")
+    champions_ids = load_ids_from_json("info/champions_ids.json")
+    teams_ids = load_ids_from_json("info/teams_ids.json")
+
+    region = "CBLOLA"
+    region = get_id(region, region_ids)
+
+    players1 = { "Lellis", "Dizin" , "Namiru", "Taara", "Sthe" }
+    players1_ids = [get_id(name, players_ids) for name in players1]
+
+    players2 = { "Curty", "Hugato", "Anyyy", "Sant", "Bulecha"}
+    players2_ids = [get_id(name, players_ids) for name in players2]
+
+    champions1 = { "Ksante", "Nocturne", "Orianna", "Varus", "Renata Glasc"}
+    champions1_ids = [get_id(name, champions_ids) for name in champions1]
+    
+    champions2 = { "Olaf", "Wukong", "Ahri", "Zeri", "Nautilus"}
+    champions2_ids = [get_id(name, champions_ids) for name in champions2]
+
+    team1 = "INTZ Academy"
+    team1 = get_id(team1, teams_ids)
+
+    team2 = "Loud Academy"
+    team2 = get_id(team2, teams_ids)
+
+
+    bans1 = { "Kalista", "Ashe", "Hwei", "Vi", "Lee Sin"}
+    bans1_ids = [get_id(name, champions_ids) for name in bans1]
+
+    bans2 = { "Illaoi", "Smolder", "Karma", "Rell", "Rakan"}
+    bans2_ids = [get_id(name, champions_ids) for name in bans2] 
+
     team_win_rates = calculate_team_win_rates('data/datasheetv2.csv')
     # Example inputs for prediction
     # Note: These values should be properly preprocessed to match your training data
-    team1_id = torch.tensor([[15]], dtype=torch.long)
-    team2_id = torch.tensor([[11]], dtype=torch.long)
-    region_id = torch.tensor([[1]], dtype=torch.long)
-    champions_team1 = torch.tensor([[1,69,88,123,87				]], dtype=torch.long)
-    champions_team2 = torch.tensor([[106,151,2,163,104				]], dtype=torch.long)
-    players_team1 = torch.tensor([[78,79,338,81,1541				]], dtype=torch.long)	
-    players_team2 = torch.tensor([[58,59,60,61,62				]], dtype=torch.long)
-    bans_team1 = torch.tensor([[55,10,44,54,138				]], dtype=torch.long)
-    bans_team2 = torch.tensor([[94,27,130,147,156				]], dtype=torch.long)
+    team1_id = torch.tensor([[team1]], dtype=torch.long)
+    team2_id = torch.tensor([[team2]], dtype=torch.long)
+    region_id = torch.tensor([[region]], dtype=torch.long)
+    champions_team1 = torch.tensor([champions1_ids], dtype=torch.long)
+    champions_team2 = torch.tensor([champions2_ids], dtype=torch.long)
+    players_team1 = torch.tensor([players1_ids], dtype=torch.long)	
+    players_team2 = torch.tensor([players2_ids], dtype=torch.long)
+    bans_team1 = torch.tensor([bans1_ids], dtype=torch.long)
+    bans_team2 = torch.tensor([bans2_ids], dtype=torch.long)
     # Example starting numerical_features tensor
     days_since_latest = torch.tensor([[0]], dtype=torch.long)  # Assume batch_size=1 for simplicity
 
     # Win rates calculated as per your code snippet
-    team1_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == 15, 'win_rate'].iloc[0]]], dtype=torch.float32)
-    team2_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == 11, 'win_rate'].iloc[0]]], dtype=torch.float32)
+    team1_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == team1, 'win_rate'].iloc[0]]], dtype=torch.float32)
+    team2_win_rate = torch.tensor([[team_win_rates.loc[team_win_rates['team_id'] == team2, 'win_rate'].iloc[0]]], dtype=torch.float32)
 
     datasheet_path = 'data/datasheetv2.csv'
     roles = ['Top', 'Jg', 'Mid', 'Adc', 'Supp']
@@ -126,13 +163,11 @@ if __name__ == "__main__":
     for (player_id, champion_id, role) in zip(players_team1.squeeze().tolist(), champions_team1.squeeze().tolist(), roles):
         win_rate = calculate_specific_player_champion_win_rate(datasheet_path, player_id=player_id, champion_id=champion_id)
         additional_numerical_features.append(win_rate)
-        print(win_rate)
 
     # Assuming a similar structure for team 2 and repeating the process
     for (player_id, champion_id, role) in zip(players_team2.squeeze().tolist(), champions_team2.squeeze().tolist(), roles):
         win_rate = calculate_specific_player_champion_win_rate(datasheet_path, player_id=player_id, champion_id=champion_id)
         additional_numerical_features.append(win_rate)
-        print(win_rate)
 
     # Convert the list of win rates to a tensor and ensure it has the correct shape
     additional_numerical_features_tensor = torch.tensor(additional_numerical_features, dtype=torch.float32).view(1, 10)  # Adjust the shape as necessary
