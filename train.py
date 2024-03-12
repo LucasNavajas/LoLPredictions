@@ -7,18 +7,18 @@ from utils.data_preprocessing import load_and_preprocess_data
 from models.match_predictor_model import MatchPredictor
 
 # Load and preprocess data
-train_dataset, test_dataset = load_and_preprocess_data('data/datasheetv2.csv')
+train_dataset, test_dataset, sampler = load_and_preprocess_data('data/datasheetv2.csv')
 
 # Create DataLoaders for training and testing datasets
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=64, sampler=sampler)
+test_loader = DataLoader(test_dataset, batch_size=64, shuffle=True)
 
 num_teams = 283
 num_champions = 168
 num_players = 1543
 num_regions = 31
 embedding_dim = 10
-num_numerical_features = 13
+num_numerical_features = 12
 output_dim = 2  # Assuming binary classification for win/lose
 
 model = MatchPredictor(num_teams, num_champions, num_players, num_regions, embedding_dim, num_numerical_features, output_dim)
@@ -32,10 +32,10 @@ device = torch.device('cpu')
 model.to(device)
 
 # Number of epochs
-num_epochs = 10
+num_epochs = 1000
 
 best_val_loss = np.inf
-patience = 10  # Number of epochs to wait for improvement before stopping
+patience = 100  # Number of epochs to wait for improvement before stopping
 patience_counter = 0
 
 # Training loop

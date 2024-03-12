@@ -9,10 +9,9 @@ import numpy as np
 from torch.utils.data import Dataset
 
 class MatchDataset(Dataset):
-    def __init__(self, features, labels, regions=None):  # Add an optional regions parameter
+    def __init__(self, features, labels):  # Add an optional regions parameter
         self.features = features
         self.labels = labels
-        self.regions = regions  # Store region information
 
     def __len__(self):
         return len(self.labels)
@@ -20,9 +19,6 @@ class MatchDataset(Dataset):
     def __getitem__(self, idx):
         feature_tensor = self.features[idx]
         label_tensor = self.labels[idx]
-        if self.regions is not None:
-            region_tensor = self.regions[idx]  # Get region information if available
-            return feature_tensor, label_tensor, region_tensor
         return feature_tensor, label_tensor
 
 
@@ -76,6 +72,7 @@ def calculate_player_champion_win_rates(datasheet_path):
 def load_and_preprocess_data(filepath):
     # Load the dataset
     df = pd.read_csv(filepath)
+    
     team_win_rates = calculate_team_win_rates(filepath)
     player_champion_win_rates = calculate_player_champion_win_rates(filepath)
 
@@ -85,11 +82,10 @@ def load_and_preprocess_data(filepath):
 
     df['TeamWinner'] = df['TeamWinner'] - 1
     df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%Y')
-    df['DaysSinceLatest'] = (df['Date'].max() - df['Date']).dt.days
     df.drop('Date', axis=1, inplace=True)
-    df.fillna(0, inplace=True)
+    df = df.apply(pd.to_numeric, errors='coerce').dropna()
 
-    numerical_features = ['DaysSinceLatest', 'Team1WinRate', 'Team2WinRate']
+    numerical_features = ['Team1WinRate', 'Team2WinRate']
 
     
     for role in ['Top', 'Jg', 'Mid', 'Adc', 'Supp']:
@@ -102,7 +98,7 @@ def load_and_preprocess_data(filepath):
                 df = df.merge(merge_df, how='left', left_on=[f'{role}{team}ID', f'{role}{team}Champion'], right_on=['player_id', 'champion_id']).drop(['player_id', 'champion_id'], axis=1)
                 
                 # Fill NaN values with 0.5 for player-champion combinations without data
-                df[new_column_name].fillna(0.53, inplace=True)
+                df[new_column_name].fillna(0.50, inplace=True)
 
                 # Append new win rate column name to 'numerical_features'
                 numerical_features.append(new_column_name)
@@ -111,13 +107,25 @@ def load_and_preprocess_data(filepath):
         transformers=[
             ('num', StandardScaler(), numerical_features)
         ], remainder='passthrough')
+    
 
     X = df.drop('TeamWinner', axis=1)
     y = df['TeamWinner']
     X_processed = preprocessor.fit_transform(X)
 
     # Split the processed data
-    X_train, X_test, y_train, y_test = train_test_split(X_processed, y, test_size=0.25, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X_processed, y, test_size=0.10, random_state=42)
+
+    class_sample_counts = np.array([len(np.where(y_train == t)[0]) for t in np.unique(y_train)])
+    smoothing_factor = 0.1
+    max_sample_count = np.max(class_sample_counts)
+    weight = 1. / (class_sample_counts + (smoothing_factor * max_sample_count))
+    samples_weight = np.array([weight[t] for t in y_train])
+
+    # Create a WeightedRandomSampler
+    samples_weight = torch.from_numpy(samples_weight)
+    samples_weight = samples_weight.double()
+    sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
 
     # Convert split data to tensors
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
@@ -128,7 +136,7 @@ def load_and_preprocess_data(filepath):
     test_data = MatchDataset(X_test_tensor, y_test_tensor)
 
     # Return processed and split tensors
-    return train_data, test_data
+    return train_data, test_data, sampler
 
 # Then, use the returned tensors for training and evaluating your model.
 
