@@ -109,36 +109,36 @@ if __name__ == "__main__":
     champions_ids = load_ids_from_json("info/champions_ids.json")
     teams_ids = load_ids_from_json("info/teams_ids.json")
 
-    region_name = "lck"
+    region_name = "lpl"
     region = get_id(region_name, region_ids)
 
-    team1_name = "dplus kia"
+    team1_name = "weibo gaming"
     team1 = get_id(team1_name, teams_ids)
 
-    team2_name = "t1"
+    team2_name = "edward gaming"
     team2 = get_id(team2_name, teams_ids)
 
-    players1 = "kingen,lucid,showmaker,aiming,kellin"
+    players1 = "zdz,xiaohao,xiaohu,light,crisp"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "zeus,oner,faker,gumayusi,keria"
+    players2 = "ale,monki,fisher,thesnake,vampire"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "Renekton,maokai,karma,smolder,milio"
+    champions1 = "camille,xin zhao,ahri,twisted fate,alistar"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "aatrox,nocturne,taliyah,lucian,nami"
+    champions2 = "jayce,volibear,orianna,senna,nautilus"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
-    bans1 = "orianna,corki,ashe,rell,ahri"
+    bans1 = "varus,rakan,karma,neeko,jax"
     bans1 = bans1.split(",")
     bans1_ids = [get_id(name, champions_ids) for name in bans1]
 
-    bans2 = "senna,vi,sejuani,lee sin,ksante"
+    bans2 = "kalista,lucian,smolder,zeri,rell"
     bans2 = bans2.split(",")
     bans2_ids = [get_id(name, champions_ids) for name in bans2] 
 
