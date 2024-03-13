@@ -5,13 +5,33 @@ from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
 from utils.data_preprocessing import load_and_preprocess_data
 from models.match_predictor_model import MatchPredictor
+import matplotlib.pyplot as plt
+import shap
+
+
+def model_wrapper(x):
+    # Convert the input from a NumPy array to a PyTorch tensor
+    x_tensor = torch.tensor(x, dtype=torch.float32)
+    
+    # Ensure the model is in evaluation mode
+    model.eval()
+    
+    # Move the tensor to the same device as the model
+    x_tensor = x_tensor.to(device)
+    
+    # Get the model's output and detach it from the computation graph
+    with torch.no_grad():
+        output = model(x_tensor).detach().cpu().numpy()
+    
+    return output
+
 
 # Load and preprocess data
 train_dataset, test_dataset, sampler = load_and_preprocess_data('data/datasheetv2.csv')
 
 # Create DataLoaders for training and testing datasets
-train_loader = DataLoader(train_dataset, batch_size=64, sampler=sampler)
-test_loader = DataLoader(test_dataset, batch_size=64, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=128, sampler=sampler)
+test_loader = DataLoader(test_dataset, batch_size=128, shuffle=True)
 
 num_teams = 283
 num_champions = 168
@@ -32,11 +52,12 @@ device = torch.device('cpu')
 model.to(device)
 
 # Number of epochs
-num_epochs = 1000
+num_epochs = 10
 
 best_val_loss = np.inf
 patience = 100  # Number of epochs to wait for improvement before stopping
 patience_counter = 0
+accuracies = []
 
 # Training loop
 for epoch in range(num_epochs):
@@ -57,38 +78,61 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
-# Evaluation loop
-model.eval()  # Set model to evaluation mode
-correct = 0
-val_loss = 0
-total = 0
+    # Evaluation loop inside the epoch loop to calculate accuracy per epoch
+    model.eval()  # Set model to evaluation mode
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for features, labels in test_loader:
+            # Move tensors to the appropriate device
+            features = features.to(device)
+            labels = labels.to(device)
 
-with torch.no_grad():
-    for features, labels in test_loader:
-        # Move tensors to the appropriate device
-        features = features.to(device)
-        labels = labels.to(device)
+            # Forward pass
+            outputs = model(features)
+            
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    
+    # Calculate accuracy for the current epoch and append to the list
+    epoch_accuracy = correct / total
+    accuracies.append(epoch_accuracy)
 
-        # Forward pass
-        outputs = model(features)
-        
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            patience_counter = 0  # Reset counter
-            # Save model checkpoint if desired
-        else:
-            patience_counter += 1  # No improvement
-        
-        # Early stopping check
-        if patience_counter >= patience:
-            print(f"Stopping early at epoch {epoch+1}")
-            break
 
+fig, ax = plt.subplots()
+ax.plot(range(num_epochs), accuracies)
+ax.set_xlabel('Epoch')
+ax.set_ylabel('Accuracy')
+ax.set_title('Accuracy per Epoch')
+plt.show()
 accuracy = correct / total
 print(f'Model accuracy on the test set: {accuracy * 100:.2f}%')
+
+background_data = next(iter(test_loader))[0].numpy()[:200]  # For instance, 100 instances from your test set
+
+# Initialize the explainer
+explainer = shap.KernelExplainer(model_wrapper, background_data)
+
+# Choose a specific instance or a small batch from your dataset to explain
+instance_to_explain = next(iter(test_loader))[0].numpy()[0:5]  # Explain the first 5 instances, as an example
+
+# Compute SHAP values
+shap_values = explainer.shap_values(instance_to_explain)
+feature_names=['TeamWinner', 'Team1ID', 'Team2ID', 'RegionID', 'Top1Champion',
+       'Jg1Champion', 'Mid1Champion', 'Adc1Champion', 'Supp1Champion',
+       'Top2Champion', 'Jg2Champion', 'Mid2Champion', 'Adc2Champion',
+       'Supp2Champion', 'BlueBan1', 'BlueBan2', 'BlueBan3', 'BlueBan4',
+       'BlueBan5', 'RedBan1', 'RedBan2', 'RedBan3', 'RedBan4', 'RedBan5',
+       'Top1ID', 'Jg1ID', 'Mid1ID', 'Adc1ID', 'Supp1ID', 'Top2ID', 'Jg2ID',
+       'Mid2ID', 'Adc2ID', 'Supp2ID', 'Team1WinRate', 'Team2WinRate',
+       'Top1ChampionWinRate', 'Top2ChampionWinRate', 'Jg1ChampionWinRate',
+       'Jg2ChampionWinRate', 'Mid1ChampionWinRate', 'Mid2ChampionWinRate',
+       'Adc1ChampionWinRate', 'Adc2ChampionWinRate', 'Supp1ChampionWinRate',
+       'Supp2ChampionWinRate']
+print(features.shape)
+# Visualization
+shap.summary_plot(shap_values, features=instance_to_explain)
 
 # Save the trained model
 torch.save(model.state_dict(), 'model.pth')

@@ -103,6 +103,7 @@ def load_and_preprocess_data(filepath):
                 # Append new win rate column name to 'numerical_features'
                 numerical_features.append(new_column_name)
 
+    print(df.columns)
     preprocessor = ColumnTransformer(
         transformers=[
             ('num', StandardScaler(), numerical_features)
@@ -114,7 +115,7 @@ def load_and_preprocess_data(filepath):
     X_processed = preprocessor.fit_transform(X)
 
     # Split the processed data
-    X_train, X_test, y_train, y_test = train_test_split(X_processed, y, test_size=0.10, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X_processed, y, test_size=0.25, random_state=42)
 
     class_sample_counts = np.array([len(np.where(y_train == t)[0]) for t in np.unique(y_train)])
     smoothing_factor = 0.1
@@ -124,7 +125,7 @@ def load_and_preprocess_data(filepath):
 
     # Create a WeightedRandomSampler
     samples_weight = torch.from_numpy(samples_weight)
-    samples_weight = samples_weight.double()
+    samples_weight = samples_weight.float()
     sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
 
     # Convert split data to tensors
