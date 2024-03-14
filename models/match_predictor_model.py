@@ -20,15 +20,15 @@ class MatchPredictor(nn.Module):
         self.fc = nn.Linear(int(total_input_size), output_dim)
 
     def forward(self, features):
-        numerical_features = features[:, :12].float()
+        numerical_features = features[:, :16].float()
 
         # Adjust indices for ID features based on the new order, including regionID now
-        team1_id = features[:, 12].long()
-        team2_id = features[:, 13].long()
-        region_id = features[:, 14].long()  # Handling for regionID
+        team1_id = features[:, 16].long()
+        team2_id = features[:, 17].long()
+        region_id = features[:, 18].long()  # Handling for regionID
 
         # Adjusting indices due to addition of regionID
-        champions_start = 15  # Starting index for champion IDs, adjusted due to addition of regionID
+        champions_start = 19  # Starting index for champion IDs, adjusted due to addition of regionID
         champions_end = champions_start + 10
         champions_team1 = features[:, champions_start:champions_start+5].long()
         champions_team2 = features[:, champions_start+5:champions_end].long()

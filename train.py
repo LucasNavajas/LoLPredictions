@@ -6,7 +6,6 @@ from torch.nn import CrossEntropyLoss
 from utils.data_preprocessing import load_and_preprocess_data
 from models.match_predictor_model import MatchPredictor
 import matplotlib.pyplot as plt
-import shap
 
 
 def model_wrapper(x):
@@ -30,15 +29,15 @@ def model_wrapper(x):
 train_dataset, test_dataset, sampler = load_and_preprocess_data('data/datasheetv2.csv')
 
 # Create DataLoaders for training and testing datasets
-train_loader = DataLoader(train_dataset, batch_size=128, sampler=sampler)
-test_loader = DataLoader(test_dataset, batch_size=128, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=32)
+test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
 
 num_teams = 283
 num_champions = 168
 num_players = 1543
 num_regions = 31
 embedding_dim = 10
-num_numerical_features = 12
+num_numerical_features = 16
 output_dim = 2  # Assuming binary classification for win/lose
 
 model = MatchPredictor(num_teams, num_champions, num_players, num_regions, embedding_dim, num_numerical_features, output_dim)
@@ -108,31 +107,6 @@ ax.set_title('Accuracy per Epoch')
 plt.show()
 accuracy = correct / total
 print(f'Model accuracy on the test set: {accuracy * 100:.2f}%')
-
-background_data = next(iter(test_loader))[0].numpy()[:200]  # For instance, 100 instances from your test set
-
-# Initialize the explainer
-explainer = shap.KernelExplainer(model_wrapper, background_data)
-
-# Choose a specific instance or a small batch from your dataset to explain
-instance_to_explain = next(iter(test_loader))[0].numpy()[0:5]  # Explain the first 5 instances, as an example
-
-# Compute SHAP values
-shap_values = explainer.shap_values(instance_to_explain)
-feature_names=['TeamWinner', 'Team1ID', 'Team2ID', 'RegionID', 'Top1Champion',
-       'Jg1Champion', 'Mid1Champion', 'Adc1Champion', 'Supp1Champion',
-       'Top2Champion', 'Jg2Champion', 'Mid2Champion', 'Adc2Champion',
-       'Supp2Champion', 'BlueBan1', 'BlueBan2', 'BlueBan3', 'BlueBan4',
-       'BlueBan5', 'RedBan1', 'RedBan2', 'RedBan3', 'RedBan4', 'RedBan5',
-       'Top1ID', 'Jg1ID', 'Mid1ID', 'Adc1ID', 'Supp1ID', 'Top2ID', 'Jg2ID',
-       'Mid2ID', 'Adc2ID', 'Supp2ID', 'Team1WinRate', 'Team2WinRate',
-       'Top1ChampionWinRate', 'Top2ChampionWinRate', 'Jg1ChampionWinRate',
-       'Jg2ChampionWinRate', 'Mid1ChampionWinRate', 'Mid2ChampionWinRate',
-       'Adc1ChampionWinRate', 'Adc2ChampionWinRate', 'Supp1ChampionWinRate',
-       'Supp2ChampionWinRate']
-print(features.shape)
-# Visualization
-shap.summary_plot(shap_values, features=instance_to_explain)
 
 # Save the trained model
 torch.save(model.state_dict(), 'model.pth')
