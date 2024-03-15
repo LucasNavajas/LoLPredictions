@@ -128,7 +128,7 @@ if __name__ == "__main__":
     num_players = 1543
     num_regions = 31
     embedding_dim = 10
-    num_numerical_features = 16
+    num_numerical_features = 6
     output_dim = 2  # Assuming binary classification for win/lose
 
     # Load the trained model
@@ -145,36 +145,36 @@ if __name__ == "__main__":
     teams_ids = load_ids_from_json("info/teams_ids.json")
     h2h_win_rates = load_h2h_win_rates("info/h2h_win_rates.json")
 
-    region_name = "lla"
+    region_name = "lvp sl"
     region = get_id(region_name, region_ids)
 
-    team1_name = "all knights"
+    team1_name = "ramboot club"
     team1 = get_id(team1_name, teams_ids)
 
-    team2_name = "leviatan"
+    team2_name = "guasones"
     team2 = get_id(team2_name, teams_ids)
 
-    players1 = "hidan,grell,nobody,lac,gastruks"
+    players1 = "ibo,lebron,twohoyrz,jeskla,seneca"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "jauny,ganks,cotopaco,virusfx,ignavilu1"
+    players2 = "spooder,thayger,xico,syzyfek,farfetch"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "gnar,poppy,tristana,varus,alistar"
+    champions1 = "ornn,viego,annie,smolder,braum"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "jayce,rell,taliyah,kalista,nautilus"
+    champions2 = "aatrox,volibear,hwei,varus,rakan"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
-    bans1 = "ashe,rakan,orianna,vi,nocturne"
+    bans1 = "ashe,taliyah,orianna,gwen,ksante"
     bans1 = bans1.split(",")
     bans1_ids = [get_id(name, champions_ids) for name in bans1]
 
-    bans2 = "karma,rumble,smolder,renata glasc,braum"
+    bans2 = "belveth,kalista,karma,neeko,ahri"
     bans2 = bans2.split(",")
     bans2_ids = [get_id(name, champions_ids) for name in bans2] 
     days_since_latest = torch.tensor([[0]], dtype=torch.long)  # Assume batch_size=1 for simplicity
@@ -245,7 +245,9 @@ if __name__ == "__main__":
     additional_numerical_features_tensor = torch.tensor(additional_numerical_features, dtype=torch.float32).view(1, 10)  # Adjust the shape as necessary
 
     # Concatenate the tensors to form the complete numerical_features tensor
-    numerical_features = torch.cat([days_since_latest,team1_win_rate, team2_win_rate, additional_numerical_features_tensor, h2h_win_rate_tensor, team1_synergy_tensor, team2_synergy_tensor], dim=1)
+    numerical_features = torch.cat([days_since_latest,team1_win_rate, team2_win_rate, 
+                                    #additional_numerical_features_tensor, 
+                                    h2h_win_rate_tensor, team1_synergy_tensor, team2_synergy_tensor], dim=1)
     # Call the prediction function
     predicted_outcome = predict_model(model, device, team1_id, team2_id, region_id, champions_team1, champions_team2, bans_team1, bans_team2, players_team1, players_team2, numerical_features)
     outcome = f"{team1_name} (Blue Team) Wins" if predicted_outcome.item() == 0 else f"{team2_name} (Red Team) Wins"

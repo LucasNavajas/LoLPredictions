@@ -25,21 +25,11 @@ class MatchDataset(Dataset):
 def apply_feature_weights(df):
     # Define weights for the prioritized features
     weights = {
-        'H2H_Win_Diff': 1.1,  
-        'Team1WinRate': 1.75,  
-        'Team2WinRate': 1.75,  
-        'Team1_Synergy': 1.5,  
-        'Team2_Synergy': 1.5,
-        'Top1ChampionWinrate' : 0.5,
-        'Jg1ChampionWinrate' : 0.5,
-        'Mid1ChampionWinrate' : 0.5,
-        'Adc1ChampionWinrate' : 0.5,
-        'Supp1ChampionWinrate' : 0.5,
-        'Top2ChampionWinrate' : 0.5,
-        'Jg2ChampionWinrate' : 0.5,
-        'Mid2ChampionWinrate' : 0.5,
-        'Adc2ChampionWinrate' : 0.5,
-        'Supp2ChampionWinrate' : 0.5,
+        'H2H_Win_Diff': 1.5,  
+        'Team1WinRate': 3,  
+        'Team2WinRate': 3,  
+        'Team1_Synergy': 2,  
+        'Team2_Synergy': 2,
 
     }
     
@@ -157,7 +147,7 @@ def add_head_to_head_feature(df, h2h_scores):
     df['Team2_H2H_Wins'] = h2h_scores['Team2Wins']
     
     # Optionally, calculate win rates or differences in wins for each pair
-    df['H2H_Win_Diff'] = df['Team1_H2H_Wins'] - df['Team2_H2H_Wins']
+    df['H2H_Win_Diff'] = df['Team1_H2H_Wins'] / df['Team2_H2H_Wins'].replace(0, 1)
 
     return df
 
@@ -247,9 +237,8 @@ def load_and_preprocess_data(filepath):
                 df[new_column_name].fillna(0.50, inplace=True)
 
                 # Append new win rate column name to 'numerical_features'
-                numerical_features.append(new_column_name)
+                #numerical_features.append(new_column_name)
     
-    print(df.head)
 
     preprocessor = ColumnTransformer(
         transformers=[

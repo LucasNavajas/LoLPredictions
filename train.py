@@ -37,7 +37,7 @@ num_champions = 168
 num_players = 1543
 num_regions = 31
 embedding_dim = 10
-num_numerical_features = 16
+num_numerical_features = 6
 output_dim = 2  # Assuming binary classification for win/lose
 
 model = MatchPredictor(num_teams, num_champions, num_players, num_regions, embedding_dim, num_numerical_features, output_dim)
@@ -51,7 +51,7 @@ device = torch.device('cpu')
 model.to(device)
 
 # Number of epochs
-num_epochs = 10
+num_epochs = 5
 
 best_val_loss = np.inf
 patience = 100  # Number of epochs to wait for improvement before stopping
