@@ -34,7 +34,7 @@ test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
 
 num_teams = 283
 num_champions = 168
-num_players = 1543
+num_players = 1554
 num_regions = 31
 embedding_dim = 10
 num_numerical_features = 6

@@ -40,7 +40,6 @@ def calculate_synergy(matches_df):
     return synergy_win_rates
 
 def get_champion_ids(row, team):
-    # You will need to replace the below line with the actual code that extracts the
     # champion IDs from the match row, based on your dataset's structure.
     return [row[f'{position}{team}Champion'] for position in ['Top', 'Jg', 'Mid', 'Adc', 'Supp']]
 

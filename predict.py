@@ -125,7 +125,7 @@ if __name__ == "__main__":
     # Configuration and model parameters
     num_teams = 283
     num_champions = 168
-    num_players = 1543
+    num_players = 1554
     num_regions = 31
     embedding_dim = 10
     num_numerical_features = 6
@@ -145,36 +145,36 @@ if __name__ == "__main__":
     teams_ids = load_ids_from_json("info/teams_ids.json")
     h2h_win_rates = load_h2h_win_rates("info/h2h_win_rates.json")
 
-    region_name = "lvp sl"
+    region_name = "lcs"
     region = get_id(region_name, region_ids)
 
-    team1_name = "ramboot club"
+    team1_name = "100 thieves"
     team1 = get_id(team1_name, teams_ids)
 
-    team2_name = "guasones"
+    team2_name = "nrg"
     team2 = get_id(team2_name, teams_ids)
 
-    players1 = "ibo,lebron,twohoyrz,jeskla,seneca"
+    players1 = "sniper,river,quid,meech,eyla"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "spooder,thayger,xico,syzyfek,farfetch"
+    players2 = "dhokla,contractz,palafox,fbi,huhi"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "ornn,viego,annie,smolder,braum"
+    champions1 = "jax,lee sin,veigar,senna,seraphine"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "aatrox,volibear,hwei,varus,rakan"
+    champions2 = "gangplank,xin zhao,ahri,smolder,tahm kench"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
-    bans1 = "ashe,taliyah,orianna,gwen,ksante"
+    bans1 = "twisted fate,kalista,jayce,jarvan iv,gragas"
     bans1 = bans1.split(",")
     bans1_ids = [get_id(name, champions_ids) for name in bans1]
 
-    bans2 = "belveth,kalista,karma,neeko,ahri"
+    bans2 = "vi,nautilus,poppy,neeko,aatrox"
     bans2 = bans2.split(",")
     bans2_ids = [get_id(name, champions_ids) for name in bans2] 
     days_since_latest = torch.tensor([[0]], dtype=torch.long)  # Assume batch_size=1 for simplicity
