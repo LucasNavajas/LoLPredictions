@@ -40,6 +40,52 @@ def apply_feature_weights(df):
     
     return df
 
+def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=38):
+    """
+    Actualiza las clasificaciones Glicko para el ganador y el perdedor de un encuentro.
+    Nota: Esta es una versión simplificada que no ajusta RD o σ.
+    
+    Args:
+    - R_winner (float): Clasificación Glicko del equipo ganador.
+    - R_loser (float): Clasificación Glicko del equipo perdedor.
+    - RD_winner (float): Desviación de clasificación del equipo ganador.
+    - RD_loser (float): Desviación de clasificación del equipo perdedor.
+    - K (int): Constante de ajuste, similar al sistema ELO.
+    
+    Returns:
+    - (float, float): Nuevas clasificaciones Glicko del equipo ganador y perdedor.
+    """
+    q = np.log(10) / 400
+    g_RD = lambda RD: 1 / np.sqrt(1 + 3 * (q**2) * (RD**2) / (np.pi**2))
+    
+    E_winner = 1 / (1 + 10 ** (g_RD(RD_loser) * (R_loser - R_winner) / 400))
+    E_loser = 1 / (1 + 10 ** (g_RD(RD_winner) * (R_winner - R_loser) / 400))
+    
+    R_winner_updated = R_winner + K * (1 - E_winner)
+    R_loser_updated = R_loser + K * (0 - E_loser)
+    
+    return R_winner_updated, R_loser_updated
+
+def apply_glicko_updates(df, team_glicko, team_RD):
+    
+    
+    for index, row in df.iterrows():
+        winner_id = row['Team1ID'] if row['TeamWinner'] == 1 else row['Team2ID']
+        loser_id = row['Team2ID'] if row['TeamWinner'] == 1 else row['Team1ID']
+        
+        # Actualizar clasificaciones Glicko
+        R_winner_updated, R_loser_updated = glicko_update(team_glicko[winner_id], team_glicko[loser_id],
+                                                          team_RD[winner_id], team_RD[loser_id])
+        
+        team_glicko[winner_id] = R_winner_updated
+        team_glicko[loser_id] = R_loser_updated
+    
+    # Agregar clasificaciones Glicko actualizadas al DataFrame
+    df['Team1Glicko'] = df['Team1ID'].map(team_glicko)
+    df['Team2Glicko'] = df['Team2ID'].map(team_glicko)
+    
+    return df
+
 def add_synergy_to_matches(df, synergy_df):
     # Function to retrieve the synergy score for a given pair of champions
     def get_synergy(pair):
@@ -202,6 +248,9 @@ def calculate_player_champion_win_rates(datasheet_path):
 def load_and_preprocess_data(filepath):
     # Load the dataset
     df = pd.read_csv(filepath)
+    team_glicko = {team_id: 500 for team_id in pd.concat([df['Team1ID'], df['Team2ID']]).unique()}
+    team_RD = {team_id: 350 for team_id in pd.concat([df['Team1ID'], df['Team2ID']]).unique()}  # RD inicial simplificado
+    df = apply_glicko_updates(df, team_glicko, team_RD)
     
     team_win_rates = calculate_team_win_rates(filepath)
     player_champion_win_rates = calculate_player_champion_win_rates(filepath)
@@ -221,7 +270,7 @@ def load_and_preprocess_data(filepath):
     df = add_synergy_to_matches(df, champion_synergy_df)
     df = apply_feature_weights(df)
 
-    numerical_features = ['DaysSinceLatest','Team1WinRate', 'Team2WinRate','H2H_Win_Diff', 'Team1_Synergy',  'Team2_Synergy']
+    numerical_features = ['DaysSinceLatest','Team1WinRate', 'Team2WinRate','H2H_Win_Diff', 'Team1_Synergy',  'Team2_Synergy', 'Team1Glicko', 'Team2Glicko']
 
     
     for role in ['Top', 'Jg', 'Mid', 'Adc', 'Supp']:

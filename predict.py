@@ -100,6 +100,10 @@ def calculate_team_synergy(champions_ids, champion_synergies):
 
     return synergy_score / num_pairs if num_pairs > 0 else 0.5
 
+def load_glicko_ratings(filepath):
+    with open(filepath, 'r') as file:
+        glicko_ratings = json.load(file)
+    return glicko_ratings
 
 def predict_model(model, device, team1_id, team2_id, region_id, champions_team1, champions_team2, players_team1, players_team2, bans_team1, bans_team2, numerical_features):
 
@@ -128,7 +132,7 @@ if __name__ == "__main__":
     num_players = 1554
     num_regions = 31
     embedding_dim = 10
-    num_numerical_features = 6
+    num_numerical_features = 8
     output_dim = 2  # Assuming binary classification for win/lose
 
     # Load the trained model
@@ -144,37 +148,38 @@ if __name__ == "__main__":
     champions_ids = load_ids_from_json("info/champions_ids.json")
     teams_ids = load_ids_from_json("info/teams_ids.json")
     h2h_win_rates = load_h2h_win_rates("info/h2h_win_rates.json")
+    glicko_ratings = load_glicko_ratings('info/team_glicko_ratings.json')
 
-    region_name = "lcs"
+    region_name = "lck"
     region = get_id(region_name, region_ids)
 
-    team1_name = "100 thieves"
+    team1_name = "kwangdong freecs"
     team1 = get_id(team1_name, teams_ids)
 
-    team2_name = "nrg"
+    team2_name = "fearx"
     team2 = get_id(team2_name, teams_ids)
 
-    players1 = "sniper,river,quid,meech,eyla"
+    players1 = "dudu,cuzz,bulldog,bull,andil"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "dhokla,contractz,palafox,fbi,huhi"
+    players2 = "clear,willer,clozer,hena,execute"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "jax,lee sin,veigar,senna,seraphine"
+    champions1 = "gnar,rell,hwei,kalista,renata glasc"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "gangplank,xin zhao,ahri,smolder,tahm kench"
+    champions2 = "ksante,xin zhao,taliyah,varus,neeko"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
-    bans1 = "twisted fate,kalista,jayce,jarvan iv,gragas"
+    bans1 = "ahri,vi,twisted fate,lee sin,nocturne"
     bans1 = bans1.split(",")
     bans1_ids = [get_id(name, champions_ids) for name in bans1]
 
-    bans2 = "vi,nautilus,poppy,neeko,aatrox"
+    bans2 = "aatrox,senna,ashe,poppy,renekton"
     bans2 = bans2.split(",")
     bans2_ids = [get_id(name, champions_ids) for name in bans2] 
     days_since_latest = torch.tensor([[0]], dtype=torch.long)  # Assume batch_size=1 for simplicity
@@ -209,6 +214,12 @@ if __name__ == "__main__":
     team1_synergy_tensor = torch.tensor([[team1_synergy]], dtype=torch.float32)
     team2_synergy_tensor = torch.tensor([[team2_synergy]], dtype=torch.float32)
 
+    team1_glicko_rating = float(glicko_ratings.get(str(team1), 1500))
+    team2_glicko_rating = float(glicko_ratings.get(str(team2), 1500))
+    team1_glicko_rating_tensor = torch.tensor([[team1_glicko_rating]], dtype=torch.long)
+    team2_glicko_rating_tensor = torch.tensor([[team2_glicko_rating]], dtype=torch.long)
+
+
 
     print(f"Region: {region_name} id: {region}")
     print(f"Head 2 head:{h2h_win_rate}")
@@ -227,27 +238,10 @@ if __name__ == "__main__":
     print(f"Red Team Winrate: {team2_win_rate}")
     print(f"Red Team Synergy: {team2_synergy}")
     
-
-    datasheet_path = 'data/datasheetv2.csv'
-    roles = ['Top', 'Jg', 'Mid', 'Adc', 'Supp']
-    additional_numerical_features = []
-    # Ensure champions_team1 and players_team1 are tensors with shape [1, 5] or similar
-    for (player_id, champion_id, role) in zip(players_team1.squeeze().tolist(), champions_team1.squeeze().tolist(), roles):
-        win_rate = calculate_specific_player_champion_win_rate(datasheet_path, player_id=player_id, champion_id=champion_id)
-        additional_numerical_features.append(win_rate)
-
-    # Assuming a similar structure for team 2 and repeating the process
-    for (player_id, champion_id, role) in zip(players_team2.squeeze().tolist(), champions_team2.squeeze().tolist(), roles):
-        win_rate = calculate_specific_player_champion_win_rate(datasheet_path, player_id=player_id, champion_id=champion_id)
-        additional_numerical_features.append(win_rate)
-
-    # Convert the list of win rates to a tensor and ensure it has the correct shape
-    additional_numerical_features_tensor = torch.tensor(additional_numerical_features, dtype=torch.float32).view(1, 10)  # Adjust the shape as necessary
-
     # Concatenate the tensors to form the complete numerical_features tensor
     numerical_features = torch.cat([days_since_latest,team1_win_rate, team2_win_rate, 
                                     #additional_numerical_features_tensor, 
-                                    h2h_win_rate_tensor, team1_synergy_tensor, team2_synergy_tensor], dim=1)
+                                    h2h_win_rate_tensor, team1_synergy_tensor, team2_synergy_tensor, team1_glicko_rating_tensor, team2_glicko_rating_tensor], dim=1)
     # Call the prediction function
     predicted_outcome = predict_model(model, device, team1_id, team2_id, region_id, champions_team1, champions_team2, bans_team1, bans_team2, players_team1, players_team2, numerical_features)
     outcome = f"{team1_name} (Blue Team) Wins" if predicted_outcome.item() == 0 else f"{team2_name} (Red Team) Wins"

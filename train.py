@@ -37,7 +37,7 @@ num_champions = 168
 num_players = 1554
 num_regions = 31
 embedding_dim = 10
-num_numerical_features = 6
+num_numerical_features = 8
 output_dim = 2  # Assuming binary classification for win/lose
 
 model = MatchPredictor(num_teams, num_champions, num_players, num_regions, embedding_dim, num_numerical_features, output_dim)
