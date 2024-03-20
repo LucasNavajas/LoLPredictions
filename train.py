@@ -1,12 +1,27 @@
 import torch
 import numpy as np
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
 from utils.data_preprocessing import load_and_preprocess_data
 from models.match_predictor_model import MatchPredictor
 import matplotlib.pyplot as plt
+import random
 
+# Fijar la semilla para la reproducibilidad
+seed = 0
+torch.manual_seed(seed)
+np.random.seed(seed)
+random.seed(seed)
+
+# Además, si estás utilizando CUDA (PyTorch con GPU), también debes fijar la semilla para CUDA
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # para multi-GPU.
+    # Asegurarse de que PyTorch pueda reproducir resultados en GPU con la misma semilla
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 def model_wrapper(x):
     # Convert the input from a NumPy array to a PyTorch tensor
@@ -26,28 +41,31 @@ def model_wrapper(x):
 
 
 # Load and preprocess data
-train_dataset, test_dataset, sampler = load_and_preprocess_data('data/datasheetv2.csv')
+train_dataset, test_dataset, weights = load_and_preprocess_data('data/datasheetv2.csv')
 
 # Create DataLoaders for training and testing datasets
-train_loader = DataLoader(train_dataset, batch_size=32)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=16)
+test_loader = DataLoader(test_dataset, batch_size=16)
 
 num_teams = 283
 num_champions = 168
 num_players = 1554
 num_regions = 31
 embedding_dim = 10
-num_numerical_features = 8
+num_numerical_features = 6
 output_dim = 2  # Assuming binary classification for win/lose
 
-model = MatchPredictor(num_teams, num_champions, num_players, num_regions, embedding_dim, num_numerical_features, output_dim)
+model = MatchPredictor(embedding_dim, num_numerical_features, output_dim)
 
-# Define loss function and optimizer
-criterion = CrossEntropyLoss()
+
+class_weights = torch.FloatTensor(weights).cuda()
+
+# Cuando inicialices tu criterio de pérdida, pasa los pesos
+criterion = nn.CrossEntropyLoss(weight=class_weights)
 optimizer = Adam(model.parameters(), lr=0.001)
 
 # Setup device for training (GPU or CPU)
-device = torch.device('cpu')
+device = torch.device('cuda')
 model.to(device)
 
 # Number of epochs

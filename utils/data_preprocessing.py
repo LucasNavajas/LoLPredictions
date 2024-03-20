@@ -22,69 +22,79 @@ class MatchDataset(Dataset):
         return feature_tensor, label_tensor
     
 
-def apply_feature_weights(df):
-    # Define weights for the prioritized features
-    weights = {
-        'H2H_Win_Diff': 1.5,  
-        'Team1WinRate': 3,  
-        'Team2WinRate': 3,  
-        'Team1_Synergy': 2,  
-        'Team2_Synergy': 2,
-
-    }
-    
-    # Apply the weights to the DataFrame
-    for feature, weight in weights.items():
-        if feature in df.columns:
-            df[feature] *= weight
-    
-    return df
-
-def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=38):
-    """
-    Actualiza las clasificaciones Glicko para el ganador y el perdedor de un encuentro.
-    Nota: Esta es una versión simplificada que no ajusta RD o σ.
-    
-    Args:
-    - R_winner (float): Clasificación Glicko del equipo ganador.
-    - R_loser (float): Clasificación Glicko del equipo perdedor.
-    - RD_winner (float): Desviación de clasificación del equipo ganador.
-    - RD_loser (float): Desviación de clasificación del equipo perdedor.
-    - K (int): Constante de ajuste, similar al sistema ELO.
-    
-    Returns:
-    - (float, float): Nuevas clasificaciones Glicko del equipo ganador y perdedor.
-    """
+def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=128, RD_reduction_factor=0.95):
     q = np.log(10) / 400
-    g_RD = lambda RD: 1 / np.sqrt(1 + 3 * (q**2) * (RD**2) / (np.pi**2))
-    
+    g_RD = lambda RD: 1 / np.sqrt(1 + 3 * q**2 * RD**2 / np.pi**2)
     E_winner = 1 / (1 + 10 ** (g_RD(RD_loser) * (R_loser - R_winner) / 400))
     E_loser = 1 / (1 + 10 ** (g_RD(RD_winner) * (R_winner - R_loser) / 400))
-    
     R_winner_updated = R_winner + K * (1 - E_winner)
-    R_loser_updated = R_loser + K * (0 - E_loser)
-    
-    return R_winner_updated, R_loser_updated
+    R_loser_updated = R_loser - K * E_loser
+    # Aplicar un simple factor de reducción al RD para ambos jugadores
+    RD_winner_updated = max(RD_winner * RD_reduction_factor, 30)  # Asumir 30 como mínimo RD sugerido por Glicko
+    RD_loser_updated = max(RD_loser * RD_reduction_factor, 30)
+    return R_winner_updated, R_loser_updated, RD_winner_updated, RD_loser_updated
 
-def apply_glicko_updates(df, team_glicko, team_RD):
-    
-    
+
+
+def calculate_player_glicko_ratings(df):
+    unique_player_ids = set(df[['Top1ID', 'Jg1ID', 'Mid1ID', 'Adc1ID', 'Supp1ID', 'Top2ID', 'Jg2ID', 'Mid2ID', 'Adc2ID', 'Supp2ID']].melt()['value'].dropna().unique())
+    player_glicko = {int(player_id): 1500 for player_id in unique_player_ids}
+    player_RD = {int(player_id): 350 for player_id in unique_player_ids}
+
+    # Listas para almacenar las clasificaciones Glicko y RD actualizadas de los equipos para cada partido
+    team1_glicko_updates, team2_glicko_updates = [], []
+    team1_rd_updates, team2_rd_updates = [], []
+
     for index, row in df.iterrows():
-        winner_id = row['Team1ID'] if row['TeamWinner'] == 1 else row['Team2ID']
-        loser_id = row['Team2ID'] if row['TeamWinner'] == 1 else row['Team1ID']
-        
-        # Actualizar clasificaciones Glicko
-        R_winner_updated, R_loser_updated = glicko_update(team_glicko[winner_id], team_glicko[loser_id],
-                                                          team_RD[winner_id], team_RD[loser_id])
-        
-        team_glicko[winner_id] = R_winner_updated
-        team_glicko[loser_id] = R_loser_updated
-    
-    # Agregar clasificaciones Glicko actualizadas al DataFrame
-    df['Team1Glicko'] = df['Team1ID'].map(team_glicko)
-    df['Team2Glicko'] = df['Team2ID'].map(team_glicko)
-    
+        equipo_ganador = str(row['TeamWinner'])
+        equipo_perdedor = '2' if equipo_ganador == '1' else '1'
+
+        # Listas para acumular los Glicko y RD de cada jugador por equipo en este partido
+        glicko_team1, glicko_team2 = [], []
+        rd_team1, rd_team2 = [], []
+
+        for pos in ['Top', 'Jg', 'Mid', 'Adc', 'Supp']:
+            id_ganador = row[pos + equipo_ganador + 'ID']
+            id_perdedor = row[pos + equipo_perdedor + 'ID']
+
+            if pd.notnull(id_ganador) and pd.notnull(id_perdedor):
+                id_ganador = int(id_ganador)
+                id_perdedor = int(id_perdedor)
+
+                R_winner, RD_winner = player_glicko[id_ganador], player_RD[id_ganador]
+                R_loser, RD_loser = player_glicko[id_perdedor], player_RD[id_perdedor]
+
+                R_winner_updated, R_loser_updated, RD_winner_updated, RD_loser_updated = glicko_update(
+                    R_winner, R_loser, RD_winner, RD_loser)
+
+                player_glicko[id_ganador], player_glicko[id_perdedor] = R_winner_updated, R_loser_updated
+                player_RD[id_ganador], player_RD[id_perdedor] = RD_winner_updated, RD_loser_updated
+
+                # Acumular las clasificaciones Glicko y RD para los equipos basado en este partido
+                if equipo_ganador == '1':
+                    glicko_team1.append(R_winner_updated)
+                    rd_team1.append(RD_winner_updated)
+                    glicko_team2.append(R_loser_updated)
+                    rd_team2.append(RD_loser_updated)
+                else:
+                    glicko_team2.append(R_winner_updated)
+                    rd_team2.append(RD_winner_updated)
+                    glicko_team1.append(R_loser_updated)
+                    rd_team1.append(RD_loser_updated)
+
+        # Calcular el promedio de Glicko y RD para cada equipo en este partido y agregarlo a las listas
+        team1_glicko_updates.append(np.mean(glicko_team1))
+        team2_glicko_updates.append(np.mean(glicko_team2))
+        team1_rd_updates.append(np.mean(rd_team1))
+        team2_rd_updates.append(np.mean(rd_team2))
+
+    # Añadir las clasificaciones Glicko y RD actualizadas al DataFrame original
+    df['Team1Glicko'] = team1_glicko_updates
+    df['Team2Glicko'] = team2_glicko_updates
+    df['Team1RD'] = team1_rd_updates
+    df['Team2RD'] = team2_rd_updates
     return df
+
 
 def add_synergy_to_matches(df, synergy_df):
     # Function to retrieve the synergy score for a given pair of champions
@@ -248,51 +258,23 @@ def calculate_player_champion_win_rates(datasheet_path):
 def load_and_preprocess_data(filepath):
     # Load the dataset
     df = pd.read_csv(filepath)
-    team_glicko = {team_id: 500 for team_id in pd.concat([df['Team1ID'], df['Team2ID']]).unique()}
-    team_RD = {team_id: 350 for team_id in pd.concat([df['Team1ID'], df['Team2ID']]).unique()}  # RD inicial simplificado
-    df = apply_glicko_updates(df, team_glicko, team_RD)
     
-    team_win_rates = calculate_team_win_rates(filepath)
+    df = calculate_player_glicko_ratings(df)
     player_champion_win_rates = calculate_player_champion_win_rates(filepath)
-
-    # Merge team win rates
-    df = df.merge(team_win_rates, how='left', left_on='Team1ID', right_on='team_id').rename(columns={'win_rate': 'Team1WinRate'}).drop('team_id', axis=1)
-    df = df.merge(team_win_rates, how='left', left_on='Team2ID', right_on='team_id').rename(columns={'win_rate': 'Team2WinRate'}).drop('team_id', axis=1)
 
     df['TeamWinner'] = df['TeamWinner'] - 1
     df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%Y')
     df['DaysSinceLatest'] = (df['Date'].max() - df['Date']).dt.days
-    h2h_scores = calculate_head_to_head_record(df)
-    df = add_head_to_head_feature(df, h2h_scores)
     df.drop('Date', axis=1, inplace=True)
-    df = df.apply(pd.to_numeric, errors='coerce').dropna()
     champion_synergy_df = calculate_champion_synergy(df)
     df = add_synergy_to_matches(df, champion_synergy_df)
-    df = apply_feature_weights(df)
 
-    numerical_features = ['DaysSinceLatest','Team1WinRate', 'Team2WinRate','H2H_Win_Diff', 'Team1_Synergy',  'Team2_Synergy', 'Team1Glicko', 'Team2Glicko']
-
-    
-    for role in ['Top', 'Jg', 'Mid', 'Adc', 'Supp']:
-            for team in ['1', '2']:
-                new_column_name = f'{role}{team}ChampionWinRate'
-                merge_df = player_champion_win_rates[['player_id', 'champion_id', 'win_rate']].copy()
-                merge_df.rename(columns={'win_rate': new_column_name}, inplace=True)
-
-                # Merge and drop unnecessary columns
-                df = df.merge(merge_df, how='left', left_on=[f'{role}{team}ID', f'{role}{team}Champion'], right_on=['player_id', 'champion_id']).drop(['player_id', 'champion_id'], axis=1)
-                
-                # Fill NaN values with 0.5 for player-champion combinations without data
-                df[new_column_name].fillna(0.50, inplace=True)
-
-                # Append new win rate column name to 'numerical_features'
-                #numerical_features.append(new_column_name)
-    
+    numerical_features = ['Team1_Synergy',  'Team2_Synergy', 'Team1Glicko', 'Team2Glicko', 'Team1RD', 'Team2RD']
 
     preprocessor = ColumnTransformer(
         transformers=[
             ('num', StandardScaler(), numerical_features)
-        ], remainder='passthrough')
+        ], remainder='drop')
     
 
     X = df.drop('TeamWinner', axis=1)
@@ -300,18 +282,7 @@ def load_and_preprocess_data(filepath):
     X_processed = preprocessor.fit_transform(X)
 
     # Split the processed data
-    X_train, X_test, y_train, y_test = train_test_split(X_processed, y, test_size=0.25, random_state=42)
-
-    class_sample_counts = np.array([len(np.where(y_train == t)[0]) for t in np.unique(y_train)])
-    smoothing_factor = 0.03
-    max_sample_count = np.max(class_sample_counts)
-    weight = 1. / (class_sample_counts + (smoothing_factor * max_sample_count))
-    samples_weight = np.array([weight[t] for t in y_train])
-
-    # Create a WeightedRandomSampler
-    samples_weight = torch.from_numpy(samples_weight)
-    samples_weight = samples_weight.float()
-    sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
+    X_train, X_test, y_train, y_test = train_test_split(X_processed, y, test_size=0.10, random_state=0)
 
     # Convert split data to tensors
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
@@ -320,9 +291,11 @@ def load_and_preprocess_data(filepath):
     y_test_tensor = torch.tensor(y_test.values, dtype=torch.long)
     train_data = MatchDataset(X_train_tensor, y_train_tensor)
     test_data = MatchDataset(X_test_tensor, y_test_tensor)
+    # Calcular pesos para cada clase
+    weights = len(y_train) / (2. * np.bincount(y_train))
 
     # Return processed and split tensors
-    return train_data, test_data, sampler
+    return train_data, test_data, weights
 
 # Then, use the returned tensors for training and evaluating your model.
 
