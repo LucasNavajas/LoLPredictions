@@ -5,6 +5,8 @@ from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 import torch
 import pandas as pd
 import numpy as np
+from joblib import dump, load
+import json
 
 from torch.utils.data import Dataset
 
@@ -22,7 +24,7 @@ class MatchDataset(Dataset):
         return feature_tensor, label_tensor
     
 
-def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=128, RD_reduction_factor=0.95):
+def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=64, RD_reduction_factor=0.95):
     q = np.log(10) / 400
     g_RD = lambda RD: 1 / np.sqrt(1 + 3 * q**2 * RD**2 / np.pi**2)
     E_winner = 1 / (1 + 10 ** (g_RD(RD_loser) * (R_loser - R_winner) / 400))
@@ -95,75 +97,78 @@ def calculate_player_glicko_ratings(df):
     df['Team2RD'] = team2_rd_updates
     return df
 
-
-def add_synergy_to_matches(df, synergy_df):
-    # Function to retrieve the synergy score for a given pair of champions
-    def get_synergy(pair):
-        if pair in synergy_dict:
-            return synergy_dict[pair]
-        else:
-            # If no synergy information is present, you could use a default value
-            return 0.5  # or some other default value you determine
+def calculate_accumulative_regional_winrates(datasheet):
+    champion_regional_stats = {}
     
-    # Convert the synergy DataFrame to a dictionary for faster look-up
-    synergy_dict = pd.Series(synergy_df.win_rate.values, index=synergy_df.pair).to_dict()
+    for index, row in datasheet.iterrows():
+        region = row['RegionID']
+        champions = [row[f'Top1Champion'], row[f'Jg1Champion'], row[f'Mid1Champion'], row[f'Adc1Champion'], row[f'Supp1Champion'],
+                     row[f'Top2Champion'], row[f'Jg2Champion'], row[f'Mid2Champion'], row[f'Adc2Champion'], row[f'Supp2Champion']]
+        winner = row['TeamWinner']
+        
+        for i, champ in enumerate(champions):
+            key = (champ, region)
+            
+            if key not in champion_regional_stats:
+                champion_regional_stats[key] = {'wins': 0, 'games': 0}
+            
+            champion_regional_stats[key]['games'] += 1
+            if ((winner == 1 and i < 5) or (winner == 2 and i >= 5)):
+                champion_regional_stats[key]['wins'] += 1
+                
+    # Crear un diccionario de winrates
+    winrates_dict = {key: stats['wins'] / stats['games'] for key, stats in champion_regional_stats.items() if stats['games'] > 0}
+    
+    return winrates_dict
 
-    # List to store synergy scores for each match
+def add_synergy_to_matches(df, synergies_dict):
     synergy_scores_team1 = []
     synergy_scores_team2 = []
 
-    # Calculate the synergy score for each match
     for index, row in df.iterrows():
         champions_team1 = [row[f'Top1Champion'], row[f'Jg1Champion'], row[f'Mid1Champion'], row[f'Adc1Champion'], row[f'Supp1Champion']]
         champions_team2 = [row[f'Top2Champion'], row[f'Jg2Champion'], row[f'Mid2Champion'], row[f'Adc2Champion'], row[f'Supp2Champion']]
 
-        # Calculate the average synergy for the team's champion pairs
-        synergy_score_team1 = np.mean([get_synergy(tuple(sorted([champions_team1[i], champions_team1[j]])))
+        synergy_score_team1 = np.mean([synergies_dict.get(tuple(sorted([champions_team1[i], champions_team1[j]])), 0.5) 
                                        for i in range(len(champions_team1)) for j in range(i + 1, len(champions_team1))])
-        synergy_score_team2 = np.mean([get_synergy(tuple(sorted([champions_team2[i], champions_team2[j]])))
+        synergy_score_team2 = np.mean([synergies_dict.get(tuple(sorted([champions_team2[i], champions_team2[j]])), 0.5) 
                                        for i in range(len(champions_team2)) for j in range(i + 1, len(champions_team2))])
 
         synergy_scores_team1.append(synergy_score_team1)
         synergy_scores_team2.append(synergy_score_team2)
 
-    # Add the synergy scores as new columns in the DataFrame
     df['Team1_Synergy'] = synergy_scores_team1
     df['Team2_Synergy'] = synergy_scores_team2
 
     return df
 
-def calculate_champion_synergy(datasheet):
-    # Initialize a record for champion pair win rates
-    champion_pairs = {}
 
+def calculate_champion_synergy(datasheet, winrates_dict):
+    champion_pairs = {}
+    
     for index, row in datasheet.iterrows():
+        region = row['RegionID']
         champions_team1 = [row[f'Top1Champion'], row[f'Jg1Champion'], row[f'Mid1Champion'], row[f'Adc1Champion'], row[f'Supp1Champion']]
         champions_team2 = [row[f'Top2Champion'], row[f'Jg2Champion'], row[f'Mid2Champion'], row[f'Adc2Champion'], row[f'Supp2Champion']]
+        winner = row['TeamWinner']
 
-        # Create unique pairs of champions within the team and update win/loss
         for team_champions in [champions_team1, champions_team2]:
             for i in range(len(team_champions)):
                 for j in range(i + 1, len(team_champions)):
                     pair = tuple(sorted([team_champions[i], team_champions[j]]))
-                    winner = row['TeamWinner']
-
                     if pair not in champion_pairs:
                         champion_pairs[pair] = {'wins': 0, 'total_games': 0}
                     
-                    if ((winner == 1 and team_champions == champions_team1) or 
-                        (winner == 2 and team_champions == champions_team2)):
+                    if ((winner == 1 and team_champions == champions_team1) or (winner == 2 and team_champions == champions_team2)):
                         champion_pairs[pair]['wins'] += 1
                     
                     champion_pairs[pair]['total_games'] += 1
 
-    # Convert the pair records to a DataFrame
-    champion_synergy_records = [{'pair': key, 'win_rate': value['wins'] / value['total_games']} for key, value in champion_pairs.items()]
-    champion_synergy_df = pd.DataFrame(champion_synergy_records)
+    # Convertir a diccionario de sinergias
+    synergies_dict = {key: value['wins'] / value['total_games'] for key, value in champion_pairs.items() if value['total_games'] > 0}
     
-    # Sort by the best synergy
-    champion_synergy_df.sort_values(by='win_rate', ascending=False, inplace=True)
+    return synergies_dict
 
-    return champion_synergy_df
 
 def calculate_head_to_head_record(datasheet):
     # Initialize a dictionary to keep track of win-loss records
@@ -206,7 +211,6 @@ def add_head_to_head_feature(df, h2h_scores):
     df['H2H_Win_Diff'] = df['Team1_H2H_Wins'] / df['Team2_H2H_Wins'].replace(0, 1)
 
     return df
-
 
 def calculate_team_win_rates(datasheet_path):
     datasheet = pd.read_csv(datasheet_path)
@@ -254,6 +258,98 @@ def calculate_player_champion_win_rates(datasheet_path):
 
     return player_champion_performance
 
+def load_champion_themes(filepath):
+    with open(filepath, 'r') as file:
+        champion_themes = json.load(file)
+    return champion_themes
+
+def calcular_puntajes_tematicos_para_equipo(champions_ids, champion_themes):
+    
+    # Inicializa el contador de temas para calcular la sinergia
+    theme_counts = {}
+    
+    for champ_id in champions_ids:
+        # Obtiene las temáticas para el campeón actual si existen
+        themes = champion_themes.get(str(champ_id), [])
+        for theme in themes:
+            theme_counts[theme] = theme_counts.get(theme, 0) + 1
+    
+    # Inicializa el puntaje de sinergia
+    puntaje_sinergia = 0
+    
+    for theme, count in theme_counts.items():
+        if theme in [5, 6]:
+            puntaje_sinergia += count ** 3  # Aumenta el peso de estos temas de manera más significativa
+        else:
+            puntaje_sinergia += max(count - 1, 0)  # Solo suma sinergia si hay más de un campeón con el mismo tema
+    
+    return puntaje_sinergia
+
+
+def calcular_puntajes_tematicos(df, champion_themes):
+    puntajes_sinergia_equipo1 = []
+    puntajes_sinergia_equipo2 = []
+    tema_equipo1 = []
+    tema_equipo2 = []
+
+    for _, row in df.iterrows():
+        # Inicializa diccionarios vacíos para almacenar los campeones y sus temáticas para cada equipo
+        champions_team1 = {}
+        champions_team2 = {}
+
+        # Extrae los campeones y sus temáticas para el equipo 1
+        for pos in ['Top', 'Jg', 'Mid', 'Adc', 'Supp']:
+            champ_id_team1 = str(row[f'{pos}1Champion'])
+            if champ_id_team1 in champion_themes:
+                champions_team1[champ_id_team1] = champion_themes[champ_id_team1]
+
+        # Realiza lo mismo para el equipo 2
+        for pos in ['Top', 'Jg', 'Mid', 'Adc', 'Supp']:
+            champ_id_team2 = str(row[f'{pos}2Champion'])
+            if champ_id_team2 in champion_themes:
+                champions_team2[champ_id_team2] = champion_themes[champ_id_team2]
+
+        # Calcula los puntajes de variedad y sinergia para cada equipo
+        puntajes_sinergia_equipo1.append(calcular_puntajes_tematicos_para_equipo(champions_team1, champion_themes))
+        puntajes_sinergia_equipo2.append(calcular_puntajes_tematicos_para_equipo(champions_team2, champion_themes))
+        tema_equipo1.append(calcular_tema_principal_equipo(champions_team1, champion_themes))
+        tema_equipo2.append(calcular_tema_principal_equipo(champions_team2, champion_themes))
+
+    df['PuntajeTemaEquipo1'] = puntajes_sinergia_equipo1
+    df['PuntajeTemaEquipo2'] = puntajes_sinergia_equipo2
+    df['TemaEquipo1'] = tema_equipo1
+    df['TemaEquipo2'] = tema_equipo2
+
+    return df
+
+def calcular_tema_principal_equipo(champions_ids, champion_themes):
+    """
+    Determina el tema principal de un equipo basado en las temáticas más frecuentes de sus campeones.
+    
+    Args:
+    - champions_ids: Lista de IDs de los campeones en el equipo.
+    - champion_themes: Diccionario que mapea IDs de campeones a listas de sus temáticas.
+    
+    Returns:
+    - ID del tema principal del equipo.
+    """
+    # Contador para las ocurrencias de cada tema en el equipo
+    tema_contador = {}
+    
+    for champ_id in champions_ids:
+        # Obtiene las temáticas para el campeón actual
+        themes = champion_themes.get(str(champ_id), [])
+        for tema in themes:
+            if tema in tema_contador:
+                tema_contador[tema] += 1
+            else:
+                tema_contador[tema] = 1
+
+    # Encuentra el tema con la mayor cantidad de ocurrencias
+    tema_principal = max(tema_contador, key=tema_contador.get, default=None)
+
+    return tema_principal
+
 
 def load_and_preprocess_data(filepath):
     # Load the dataset
@@ -261,41 +357,54 @@ def load_and_preprocess_data(filepath):
     
     df = calculate_player_glicko_ratings(df)
     player_champion_win_rates = calculate_player_champion_win_rates(filepath)
-
+    champion_themes = load_champion_themes('info/color_themes.json')
+    calcular_puntajes_tematicos(df, champion_themes)
     df['TeamWinner'] = df['TeamWinner'] - 1
     df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%Y')
     df['DaysSinceLatest'] = (df['Date'].max() - df['Date']).dt.days
     df.drop('Date', axis=1, inplace=True)
-    champion_synergy_df = calculate_champion_synergy(df)
+    winrate_df = calculate_accumulative_regional_winrates(df)
+    champion_synergy_df = calculate_champion_synergy(df, winrate_df)
     df = add_synergy_to_matches(df, champion_synergy_df)
-
-    numerical_features = ['Team1_Synergy',  'Team2_Synergy', 'Team1Glicko', 'Team2Glicko', 'Team1RD', 'Team2RD']
-
+    numerical_features = ['PuntajeTemaEquipo1', 'PuntajeTemaEquipo2', 'Team1Glicko', 'Team2Glicko']
     preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', StandardScaler(), numerical_features)
-        ], remainder='drop')
+    transformers=[
+        ('num', StandardScaler(), numerical_features),
+        ('synergy', 'passthrough', ['Team1_Synergy', 'Team2_Synergy'])
+    ], remainder='drop')
+
     
 
     X = df.drop('TeamWinner', axis=1)
     y = df['TeamWinner']
     X_processed = preprocessor.fit_transform(X)
+    if hasattr(X_processed, "toarray"):
+        X_processed = X_processed.toarray()
+    elif hasattr(X_processed, "todense"):
+        X_processed = X_processed.todense()
 
+    dump(preprocessor, 'preprocessor.joblib')
     # Split the processed data
-    X_train, X_test, y_train, y_test = train_test_split(X_processed, y, test_size=0.10, random_state=0)
+    X_train_val, X_test, y_train_val, y_test = train_test_split(X_processed, y, test_size=0.20, random_state=0)
 
+    # Luego dividir entrenamiento+validación en entrenamiento y validación
+    X_train, X_val, y_train, y_val = train_test_split(X_train_val, y_train_val, test_size=0.25, random_state=0)  # 0.25 x 0.8 = 0.2
     # Convert split data to tensors
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+    X_val_tensor = torch.tensor(X_val, dtype=torch.float32)
     X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
-    y_train_tensor = torch.tensor(y_train.values, dtype=torch.long)
-    y_test_tensor = torch.tensor(y_test.values, dtype=torch.long)
-    train_data = MatchDataset(X_train_tensor, y_train_tensor)
-    test_data = MatchDataset(X_test_tensor, y_test_tensor)
-    # Calcular pesos para cada clase
-    weights = len(y_train) / (2. * np.bincount(y_train))
 
+    y_train_tensor = torch.tensor(y_train.values, dtype=torch.long)
+    y_val_tensor = torch.tensor(y_val.values, dtype=torch.long)
+    y_test_tensor = torch.tensor(y_test.values, dtype=torch.long)
+
+    train_data = MatchDataset(X_train_tensor, y_train_tensor)
+    val_data = MatchDataset(X_val_tensor, y_val_tensor)
+    test_data = MatchDataset(X_test_tensor, y_test_tensor)
+
+    weights = len(y_train) / (2. * np.bincount(y_train))
     # Return processed and split tensors
-    return train_data, test_data, weights
+    return train_data, test_data, val_data, weights
 
 # Then, use the returned tensors for training and evaluating your model.
 

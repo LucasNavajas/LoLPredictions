@@ -7,6 +7,7 @@ from torch.nn import CrossEntropyLoss
 from utils.data_preprocessing import load_and_preprocess_data
 from models.match_predictor_model import MatchPredictor
 import matplotlib.pyplot as plt
+import torch.nn.functional as F
 import random
 
 # Fijar la semilla para la reproducibilidad
@@ -41,35 +42,38 @@ def model_wrapper(x):
 
 
 # Load and preprocess data
-train_dataset, test_dataset, weights = load_and_preprocess_data('data/datasheetv2.csv')
+train_dataset, test_dataset, val_dataset, weights = load_and_preprocess_data('data/datasheetv2.csv')
 
 # Create DataLoaders for training and testing datasets
-train_loader = DataLoader(train_dataset, batch_size=16)
-test_loader = DataLoader(test_dataset, batch_size=16)
+train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+valid_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
 num_teams = 283
 num_champions = 168
 num_players = 1554
 num_regions = 31
 embedding_dim = 10
+num_themes = 7
 num_numerical_features = 6
 output_dim = 2  # Assuming binary classification for win/lose
 
-model = MatchPredictor(embedding_dim, num_numerical_features, output_dim)
+model = MatchPredictor(num_numerical_features, output_dim)
 
 
-class_weights = torch.FloatTensor(weights).cuda()
+weights = torch.tensor([1.0, 1.1])  # Aumenta el peso de la clase 0
+class_weights = torch.FloatTensor(weights).cpu()
 
 # Cuando inicialices tu criterio de pérdida, pasa los pesos
-criterion = nn.CrossEntropyLoss(weight=class_weights)
+criterion = nn.CrossEntropyLoss(class_weights)
 optimizer = Adam(model.parameters(), lr=0.001)
 
 # Setup device for training (GPU or CPU)
-device = torch.device('cuda')
+device = torch.device('cpu')
 model.to(device)
 
 # Number of epochs
-num_epochs = 5
+num_epochs = 3
 
 best_val_loss = np.inf
 patience = 100  # Number of epochs to wait for improvement before stopping
@@ -97,25 +101,27 @@ for epoch in range(num_epochs):
 
     # Evaluation loop inside the epoch loop to calculate accuracy per epoch
     model.eval()  # Set model to evaluation mode
+    valid_loss = 0.0
     correct = 0
     total = 0
     with torch.no_grad():
-        for features, labels in test_loader:
-            # Move tensors to the appropriate device
+        for features, labels in valid_loader:
+            # Tu ciclo de validación aquí, similar al de prueba
             features = features.to(device)
             labels = labels.to(device)
-
-            # Forward pass
             outputs = model(features)
-            
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-    
-    # Calculate accuracy for the current epoch and append to the list
+            loss = criterion(outputs, labels)
+            valid_loss += loss.item()
+
+    # Calcula la precisión y la pérdida promedio de validación
+    valid_accuracy = correct / total
+    valid_loss /= len(valid_loader)
+    print(f'Epoch {epoch}, Valid Loss: {valid_loss}, Valid Accuracy: {valid_accuracy}')
     epoch_accuracy = correct / total
     accuracies.append(epoch_accuracy)
-
 
 fig, ax = plt.subplots()
 ax.plot(range(num_epochs), accuracies)

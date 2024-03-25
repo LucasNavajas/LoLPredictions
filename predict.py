@@ -2,7 +2,11 @@ import torch
 import json
 import pandas as pd
 from models.match_predictor_model import MatchPredictor
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler
 from utils.data_preprocessing import calculate_team_win_rates
+from joblib import dump, load
+import torch.nn.functional as F
 
 
 def load_ids_from_json(filepath):
@@ -25,6 +29,10 @@ def get_h2h_win_rate(team1_id, team2_id, h2h_win_rates):
         return h2h_win_rates.get(str(teams2), 0.5)
     else:
         return 0.5
+def load_champion_themes(filepath):
+    with open(filepath, 'r') as file:
+        champion_themes = json.load(file)
+    return champion_themes
 
 def get_id(name, ids):
     # Normalize the region name to lower case to ensure case-insensitivity
@@ -83,17 +91,15 @@ def load_champion_synergies(filepath):
         champion_synergies = json.load(file)
     return champion_synergies
 
-def calculate_team_synergy(champions_ids, champion_synergies):
+def calculate_team_synergy(champions_ids, champion_synergies, region):
     champions_ids = champions_ids.squeeze(0).numpy()
     synergy_score = 0
     num_pairs = 0
-    
 
-    # Calculate the average synergy for all unique pairs of champions in the team
+    # Asume que 'region' es una variable que contiene el identificador de la región actual (como 'NA', 'EUW', etc.)
     for i in range(len(champions_ids)):
         for j in range(i + 1, len(champions_ids)):
-            # Since the keys in the JSON are strings, we construct the key as such.
-            pair_key = f"{champions_ids[i]}-{champions_ids[j]}" if champions_ids[i] < champions_ids[j] else f"{champions_ids[j]}-{champions_ids[i]}"
+            pair_key = f"{champions_ids[i]}-{champions_ids[j]}-{region}" if champions_ids[i] < champions_ids[j] else f"{champions_ids[j]}-{champions_ids[i]}-{region}"
             synergy = champion_synergies.get(pair_key, 0.5)  # Default to 0.5 if no data available
             synergy_score += synergy
             num_pairs += 1
@@ -118,21 +124,78 @@ def calculate_average(player_ids, player_glicko_ratings, player_RD):
         return 0, 0  # Return 0 for both if no players found
     return ratings_sum / num_players, RD_sum / num_players 
 
-def predict_model(model, device, numerical_features):
+def calcular_puntajes_tematicos_para_equipo(champions_ids, champion_themes):
+    
+    # Inicializa el contador de temas para calcular la sinergia
+    theme_counts = {}
+    
+    for champ_id in champions_ids:
+        # Obtiene las temáticas para el campeón actual si existen
+        themes = champion_themes.get(str(champ_id), [])
+        for theme in themes:
+            theme_counts[theme] = theme_counts.get(theme, 0) + 1
+    
+    # Inicializa el puntaje de sinergia
+    puntaje_sinergia = 0
+    
+    for theme, count in theme_counts.items():
+        if theme in [5, 6]:
+            puntaje_sinergia += count ** 3  # Aumenta el peso de estos temas de manera más significativa
+        else:
+            puntaje_sinergia += max(count - 1, 0)  # Solo suma sinergia si hay más de un campeón con el mismo tema
+    
+    return puntaje_sinergia
 
-    # Ensure model is in evaluation mode
+
+
+def calcular_tema_principal_equipo(champions_ids, champion_themes):
+    """
+    Determina el tema principal de un equipo basado en las temáticas más frecuentes de sus campeones.
+    
+    Args:
+    - champions_ids: Lista de IDs de los campeones en el equipo.
+    - champion_themes: Diccionario que mapea IDs de campeones a listas de sus temáticas.
+    
+    Returns:
+    - ID del tema principal del equipo.
+    """
+    # Contador para las ocurrencias de cada tema en el equipo
+    tema_contador = {}
+    
+    for champ_id in champions_ids:
+        # Obtiene las temáticas para el campeón actual
+        themes = champion_themes.get(str(champ_id), [])
+        for tema in themes:
+            if tema in tema_contador:
+                tema_contador[tema] += 1
+            else:
+                tema_contador[tema] = 1
+
+    # Encuentra el tema con la mayor cantidad de ocurrencias
+    tema_principal = max(tema_contador, key=tema_contador.get, default=None)
+
+    return tema_principal
+
+def predict_model(model, device, all_features):
+    # Convierte los tensores de PyTorch a un DataFrame de Pandas
+    if all_features.is_cuda:
+        all_features_np = all_features.cpu().numpy()
+    else:
+        all_features_np = all_features.numpy()
+    df = pd.DataFrame(all_features_np, columns=['Team1_Synergy',  'Team2_Synergy','PuntajeTemaEquipo1', 'PuntajeTemaEquipo2', 'Team1Glicko', 'Team2Glicko'])
+    preprocessor = load('preprocessor.joblib')
+
+    # Aplica el preprocessor cargado para transformar los datos
+    df_preprocessed = preprocessor.transform(df)
+    # Convierte los datos transformados de nuevo a un tensor PyTorch
+    data_tensor = torch.tensor(df_preprocessed, dtype=torch.float32).to(device)
+    # Asegura que el modelo esté en modo evaluación y desactiva el cálculo de gradientes
     model.eval()
-
-    # Combine all inputs into a single features tensor
-    # Note: Adjust the concatenation based on the exact structure your model expects
-    features = torch.cat([numerical_features], dim=1)
-
-    # Transfer input data to the specified device
-    features = features.to(device)
-
-    # No gradient computation needed
     with torch.no_grad():
-        outputs = model(features)
+        outputs = model(data_tensor)
+        probabilidades = F.softmax(outputs, dim=1)
+        print(f"Probabilidad de Blue: {probabilidades[0][0].numpy()*100}%")
+        print(f"Probabilidad de Red: {probabilidades[0][1].numpy()*100}%")
         _, predicted = torch.max(outputs, 1)
 
     return predicted
@@ -147,10 +210,11 @@ if __name__ == "__main__":
     embedding_dim = 10
     num_numerical_features = 6
     output_dim = 2  # Assuming binary classification for win/lose
+    num_themes = 7
 
     # Load the trained model
     model_path = 'model.pth'
-    model = MatchPredictor(embedding_dim, num_numerical_features, output_dim)
+    model = MatchPredictor(num_numerical_features, output_dim)
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     model.eval()  # Set the model to evaluation mode
     device = torch.device('cpu')
@@ -164,25 +228,28 @@ if __name__ == "__main__":
     player_glicko_ratings = glicko_ratings['player_glicko']
     player_RD = glicko_ratings["player_RD"]
 
-    team1_name = "ucam esports"
+    region = "lpl"
+    region_id = get_id(region, region_ids)
+
+    team1_name = "thundertalk gaming"
     team1 = get_id(team1_name, teams_ids)
 
-    team2_name = "case esports"
+    team2_name = "funplus phoenix"
     team2 = get_id(team2_name, teams_ids)
 
-    players1 = "acd,koldo,baca,kenal,obstinatus"
+    players1 = "hoya,beichuan,ucal,1xn,qiuqiu"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "badlulu,maxi,javier,denvoksne,rhuckz"
+    players2 = "xiaolaohu,milkyway,care,deokdam,life"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "rumble,volibear,ahri,kaisa,rell"
+    champions1 = "renekton,poppy,aurelion sol,varus,renata glasc"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "aatrox,jarvan iv,orianna,zeri,alistar"
+    champions2 = "jayce,graves,veigar,senna,nautilus"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
@@ -196,11 +263,11 @@ if __name__ == "__main__":
     champions_team2 = torch.tensor([champions2_ids], dtype=torch.long)
     players_team1 = torch.tensor([players1_ids], dtype=torch.long)	
     players_team2 = torch.tensor([players2_ids], dtype=torch.long)
-    champion_synergies = load_champion_synergies('info/team_synergies.json')
+    champion_synergies = load_champion_synergies('info/team_synergies_by_region.json')
 
     # Calculate team synergies
-    team1_synergy = calculate_team_synergy(champions_team1, champion_synergies)
-    team2_synergy = calculate_team_synergy(champions_team2, champion_synergies)
+    team1_synergy = calculate_team_synergy(champions_team1, champion_synergies, region_id)
+    team2_synergy = calculate_team_synergy(champions_team2, champion_synergies, region_id)
     # Convert to tensor and add to numerical_features for prediction
     team1_synergy_tensor = torch.tensor([[team1_synergy]], dtype=torch.float32)
     team2_synergy_tensor = torch.tensor([[team2_synergy]], dtype=torch.float32)
@@ -209,9 +276,22 @@ if __name__ == "__main__":
     team2_glicko_rating, team2_RD = calculate_average(players2_ids, player_glicko_ratings, player_RD)
     team1_glicko_rating_tensor = torch.tensor([[team1_glicko_rating]], dtype=torch.float32)
     team2_glicko_rating_tensor = torch.tensor([[team2_glicko_rating]], dtype=torch.float32)
-    team1_RD_tensor = torch.tensor([[team1_RD]], dtype=torch.float32)
-    team2_RD_tensor = torch.tensor([[team2_RD]], dtype=torch.float32)
 
+    # Asumiendo que `champion_themes` ya está cargado
+    champion_themes = load_champion_themes('info/color_themes.json')
+
+    # Calcula los puntajes de tema para cada equipo
+    puntaje_tema_equipo1 = calcular_puntajes_tematicos_para_equipo(champions1_ids, champion_themes)
+    puntaje_tema_equipo2 = calcular_puntajes_tematicos_para_equipo(champions2_ids, champion_themes)
+
+    # Convertir los puntajes de tema a tensores
+    puntaje_tema_equipo1_tensor = torch.tensor([[puntaje_tema_equipo1]], dtype=torch.float32)
+    puntaje_tema_equipo2_tensor = torch.tensor([[puntaje_tema_equipo2]], dtype=torch.float32)
+
+    tema_equipo1 = calcular_tema_principal_equipo(champions1_ids, champion_themes)
+    tema_equipo1_tensor = torch.tensor([tema_equipo1], dtype=torch.long)	
+    tema_equipo2 = calcular_tema_principal_equipo(champions2_ids, champion_themes)
+    tema_equipo2_tensor = torch.tensor([tema_equipo2], dtype=torch.long)
 
 
     print("-------------------------------------------------------------------------------------------------------------------------")
@@ -220,35 +300,24 @@ if __name__ == "__main__":
     print(f"Blue Team Champions: {champions1} ids: {champions1_ids}")
     print(f"Blue Team Synergy: {team1_synergy}")
     print(f"Blue Team Glicko: {team1_glicko_rating}")
-    print(f"Blue Team RD: {team1_RD}")
+    print(f"Blue Team Theme Points: {puntaje_tema_equipo1}")
+    print(f"Blue Theme: {tema_equipo1}")
     print("-------------------------------------------------------------------------------------------------------------------------")
     print(f"Red Team: {team2_name} id: {team2}")
     print(f"Red Team Players: {players2} ids: {players2_ids}")
     print(f"Red Team Champions: {champions2} ids: {champions2_ids}")
     print(f"Red Team Synergy: {team2_synergy}")
     print(f"Red Team Glicko: {team2_glicko_rating}")
-    print(f"Red Team RD: {team2_RD}")
+    print(f"Red Team Theme Points: {puntaje_tema_equipo2}")
+    print(f"Red Team Theme: {tema_equipo2}")
     
-    datasheet_path = 'data/datasheetv2.csv'
-    roles = ['Top', 'Jg', 'Mid', 'Adc', 'Supp']
-    additional_numerical_features = []
-    # Ensure champions_team1 and players_team1 are tensors with shape [1, 5] or similar
-    for (player_id, champion_id, role) in zip(players_team1.squeeze().tolist(), champions_team1.squeeze().tolist(), roles):
-        win_rate = calculate_specific_player_champion_win_rate(datasheet_path, player_id=player_id, champion_id=champion_id)
-        additional_numerical_features.append(win_rate)
-
-    # Assuming a similar structure for team 2 and repeating the process
-    for (player_id, champion_id, role) in zip(players_team2.squeeze().tolist(), champions_team2.squeeze().tolist(), roles):
-        win_rate = calculate_specific_player_champion_win_rate(datasheet_path, player_id=player_id, champion_id=champion_id)
-        additional_numerical_features.append(win_rate)
-
-    # Convert the list of win rates to a tensor and ensure it has the correct shape
-    additional_numerical_features_tensor = torch.tensor(additional_numerical_features, dtype=torch.float32).view(1, 10)  # Adjust the shape as necessary
     # Concatenate the tensors to form the complete numerical_features tensor
-    numerical_features = torch.cat([
+    all_features = torch.cat([
                                     #additional_numerical_features_tensor, 
-                                    team1_synergy_tensor,team2_synergy_tensor,team1_glicko_rating_tensor, team2_glicko_rating_tensor, team1_RD_tensor, team2_RD_tensor], dim=1)
+                                    team1_synergy_tensor,team2_synergy_tensor,
+                                    puntaje_tema_equipo1_tensor, puntaje_tema_equipo2_tensor,
+                                    team1_glicko_rating_tensor, team2_glicko_rating_tensor], dim=1)
     # Call the prediction function
-    predicted_outcome = predict_model(model, device,numerical_features)
+    predicted_outcome = predict_model(model, device,all_features)
     outcome = f"{team1_name} (Blue Team) Wins" if predicted_outcome.item() == 0 else f"{team2_name} (Red Team) Wins"
     print(f"Predicted outcome: {outcome}")

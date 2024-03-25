@@ -5,7 +5,7 @@ import json
 # Carga y preparación de los datos
 df = pd.read_csv('data/datasheetv2.csv')
 
-def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=128, RD_reduction_factor=0.95):
+def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=64, RD_reduction_factor=0.95):
     q = np.log(10) / 400
     g_RD = lambda RD: 1 / np.sqrt(1 + 3 * q**2 * RD**2 / np.pi**2)
     E_winner = 1 / (1 + 10 ** (g_RD(RD_loser) * (R_loser - R_winner) / 400))
