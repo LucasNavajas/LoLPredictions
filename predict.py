@@ -182,7 +182,10 @@ def predict_model(model, device, all_features):
         all_features_np = all_features.cpu().numpy()
     else:
         all_features_np = all_features.numpy()
-    df = pd.DataFrame(all_features_np, columns=['Team1_Synergy',  'Team2_Synergy','PuntajeTemaEquipo1', 'PuntajeTemaEquipo2', 'Team1Glicko', 'Team2Glicko'])
+    df = pd.DataFrame(all_features_np, columns=['PuntajeTemaEquipo1', 'PuntajeTemaEquipo2', 'Team1Glicko', 'Team2Glicko',
+                                                'Team1_Synergy', 'Team2_Synergy',
+                                                'Top1Champion', 'Jg1Champion', 'Mid1Champion', 'Adc1Champion', 'Supp1Champion',
+                                                'Top2Champion', 'Jg2Champion', 'Mid2Champion', 'Adc2Champion', 'Supp2Champion'])
     preprocessor = load('preprocessor.joblib')
 
     # Aplica el preprocessor cargado para transformar los datos
@@ -214,7 +217,7 @@ if __name__ == "__main__":
 
     # Load the trained model
     model_path = 'model.pth'
-    model = MatchPredictor(num_numerical_features, output_dim)
+    model = MatchPredictor(num_numerical_features, output_dim, num_champions, embedding_dim)
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     model.eval()  # Set the model to evaluation mode
     device = torch.device('cpu')
@@ -231,25 +234,25 @@ if __name__ == "__main__":
     region = "lpl"
     region_id = get_id(region, region_ids)
 
-    team1_name = "thundertalk gaming"
+    team1_name = "lng esports"
     team1 = get_id(team1_name, teams_ids)
 
-    team2_name = "funplus phoenix"
+    team2_name = "weibo gaming"
     team2 = get_id(team2_name, teams_ids)
 
-    players1 = "hoya,beichuan,ucal,1xn,qiuqiu"
+    players1 = "zika,weiwei,scout,gala,hang"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "xiaolaohu,milkyway,care,deokdam,life"
+    players2 =  "zdz,xiaohao,xiaohu,light,crisp"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "renekton,poppy,aurelion sol,varus,renata glasc"
+    champions1 = "ksante,brand,tristana,senna,tahm kench"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "jayce,graves,veigar,senna,nautilus"
+    champions2 = "renekton,xin zhao,taliyah,varus,rakan"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
@@ -314,9 +317,10 @@ if __name__ == "__main__":
     # Concatenate the tensors to form the complete numerical_features tensor
     all_features = torch.cat([
                                     #additional_numerical_features_tensor, 
-                                    team1_synergy_tensor,team2_synergy_tensor,
-                                    puntaje_tema_equipo1_tensor, puntaje_tema_equipo2_tensor,
-                                    team1_glicko_rating_tensor, team2_glicko_rating_tensor], dim=1)
+                                    puntaje_tema_equipo1_tensor,puntaje_tema_equipo2_tensor,
+                                    team1_glicko_rating_tensor, team2_glicko_rating_tensor, 
+                                    team1_synergy_tensor, team2_synergy_tensor,
+                                    champions_team1, champions_team2], dim=1)
     # Call the prediction function
     predicted_outcome = predict_model(model, device,all_features)
     outcome = f"{team1_name} (Blue Team) Wins" if predicted_outcome.item() == 0 else f"{team2_name} (Red Team) Wins"

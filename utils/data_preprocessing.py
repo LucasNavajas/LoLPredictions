@@ -24,7 +24,7 @@ class MatchDataset(Dataset):
         return feature_tensor, label_tensor
     
 
-def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=64, RD_reduction_factor=0.95):
+def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=64, RD_reduction_factor=0.97):
     q = np.log(10) / 400
     g_RD = lambda RD: 1 / np.sqrt(1 + 3 * q**2 * RD**2 / np.pi**2)
     E_winner = 1 / (1 + 10 ** (g_RD(RD_loser) * (R_loser - R_winner) / 400))
@@ -370,7 +370,9 @@ def load_and_preprocess_data(filepath):
     preprocessor = ColumnTransformer(
     transformers=[
         ('num', StandardScaler(), numerical_features),
-        ('synergy', 'passthrough', ['Team1_Synergy', 'Team2_Synergy'])
+        ('synergy', 'passthrough', ['Team1_Synergy', 'Team2_Synergy',
+                                    'Top1Champion', 'Jg1Champion', 'Mid1Champion', 'Adc1Champion', 'Supp1Champion',
+                                    'Top2Champion', 'Jg2Champion', 'Mid2Champion', 'Adc2Champion', 'Supp2Champion'])
     ], remainder='drop')
 
     
@@ -385,7 +387,7 @@ def load_and_preprocess_data(filepath):
 
     dump(preprocessor, 'preprocessor.joblib')
     # Split the processed data
-    X_train_val, X_test, y_train_val, y_test = train_test_split(X_processed, y, test_size=0.20, random_state=0)
+    X_train_val, X_test, y_train_val, y_test = train_test_split(X_processed, y, test_size=0.10, random_state=0)
 
     # Luego dividir entrenamiento+validación en entrenamiento y validación
     X_train, X_val, y_train, y_val = train_test_split(X_train_val, y_train_val, test_size=0.25, random_state=0)  # 0.25 x 0.8 = 0.2

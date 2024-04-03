@@ -45,9 +45,9 @@ def model_wrapper(x):
 train_dataset, test_dataset, val_dataset, weights = load_and_preprocess_data('data/datasheetv2.csv')
 
 # Create DataLoaders for training and testing datasets
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-valid_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
+valid_loader = DataLoader(val_dataset, batch_size=256, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
 num_teams = 283
 num_champions = 168
@@ -58,7 +58,7 @@ num_themes = 7
 num_numerical_features = 6
 output_dim = 2  # Assuming binary classification for win/lose
 
-model = MatchPredictor(num_numerical_features, output_dim)
+model = MatchPredictor(num_numerical_features, output_dim, num_champions, embedding_dim)
 
 
 weights = torch.tensor([1.0, 1.1])  # Aumenta el peso de la clase 0
@@ -73,7 +73,7 @@ device = torch.device('cpu')
 model.to(device)
 
 # Number of epochs
-num_epochs = 3
+num_epochs = 5
 
 best_val_loss = np.inf
 patience = 100  # Number of epochs to wait for improvement before stopping
