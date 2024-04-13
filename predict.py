@@ -182,8 +182,8 @@ def predict_model(model, device, all_features):
         all_features_np = all_features.cpu().numpy()
     else:
         all_features_np = all_features.numpy()
-    df = pd.DataFrame(all_features_np, columns=['PuntajeTemaEquipo1', 'PuntajeTemaEquipo2', 'Team1Glicko', 'Team2Glicko',
-                                                'Team1_Synergy', 'Team2_Synergy',
+    df = pd.DataFrame(all_features_np, columns=[#'PuntajeTemaEquipo1', 'PuntajeTemaEquipo2', 'Team1Glicko', 'Team2Glicko',
+                                                #'Team1_Synergy', 'Team2_Synergy',
                                                 'Top1Champion', 'Jg1Champion', 'Mid1Champion', 'Adc1Champion', 'Supp1Champion',
                                                 'Top2Champion', 'Jg2Champion', 'Mid2Champion', 'Adc2Champion', 'Supp2Champion'])
     preprocessor = load('preprocessor.joblib')
@@ -231,28 +231,28 @@ if __name__ == "__main__":
     player_glicko_ratings = glicko_ratings['player_glicko']
     player_RD = glicko_ratings["player_RD"]
 
-    region = "lpl"
-    region_id = get_id(region, region_ids)
+    #region = "lec"
+    #region_id = get_id(region, region_ids)
 
-    team1_name = "lng esports"
-    team1 = get_id(team1_name, teams_ids)
+    #team1_name = "bilibili gaming"
+    #team1 = get_id(team1_name, teams_ids)
 
-    team2_name = "weibo gaming"
-    team2 = get_id(team2_name, teams_ids)
+    #team2_name = "top esports"
+    #team2 = get_id(team2_name, teams_ids)
 
-    players1 = "zika,weiwei,scout,gala,hang"
-    players1 = players1.split(",")
-    players1_ids = [get_id(name, players_ids) for name in players1]
+    #players1 = "doran,peanut,zeka,viper,delight"
+    #players1 = players1.split(",")
+    #players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 =  "zdz,xiaohao,xiaohu,light,crisp"
-    players2 = players2.split(",")
-    players2_ids = [get_id(name, players_ids) for name in players2]
+    #players2 = "zeus,oner,faker,gumayusi,keria"
+    #players2 = players2.split(",")
+    #players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "ksante,brand,tristana,senna,tahm kench"
+    champions1 = "reksai,xin zhao,azir,xayah,rakan"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "renekton,xin zhao,taliyah,varus,rakan"
+    champions2 = "rumble,vi,corki,zeri,nautilus"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
@@ -260,68 +260,68 @@ if __name__ == "__main__":
     team_win_rates = calculate_team_win_rates('data/datasheetv2.csv')
     # Example inputs for prediction
     # Note: These values should be properly preprocessed to match your training data
-    team1_id = torch.tensor([[team1]], dtype=torch.long)
-    team2_id = torch.tensor([[team2]], dtype=torch.long)
+    #team1_id = torch.tensor([[team1]], dtype=torch.long)
+    #team2_id = torch.tensor([[team2]], dtype=torch.long)
     champions_team1 = torch.tensor([champions1_ids], dtype=torch.long)
     champions_team2 = torch.tensor([champions2_ids], dtype=torch.long)
-    players_team1 = torch.tensor([players1_ids], dtype=torch.long)	
-    players_team2 = torch.tensor([players2_ids], dtype=torch.long)
-    champion_synergies = load_champion_synergies('info/team_synergies_by_region.json')
+    #players_team1 = torch.tensor([players1_ids], dtype=torch.long)	
+    #players_team2 = torch.tensor([players2_ids], dtype=torch.long)
+    #champion_synergies = load_champion_synergies('info/team_synergies_by_region.json')
 
     # Calculate team synergies
-    team1_synergy = calculate_team_synergy(champions_team1, champion_synergies, region_id)
-    team2_synergy = calculate_team_synergy(champions_team2, champion_synergies, region_id)
+    #team1_synergy = calculate_team_synergy(champions_team1, champion_synergies, region_id)
+    #team2_synergy = calculate_team_synergy(champions_team2, champion_synergies, region_id)
     # Convert to tensor and add to numerical_features for prediction
-    team1_synergy_tensor = torch.tensor([[team1_synergy]], dtype=torch.float32)
-    team2_synergy_tensor = torch.tensor([[team2_synergy]], dtype=torch.float32)
+    #team1_synergy_tensor = torch.tensor([[team1_synergy]], dtype=torch.float32)
+    #team2_synergy_tensor = torch.tensor([[team2_synergy]], dtype=torch.float32)
 
-    team1_glicko_rating, team1_RD = calculate_average(players1_ids, player_glicko_ratings, player_RD)
-    team2_glicko_rating, team2_RD = calculate_average(players2_ids, player_glicko_ratings, player_RD)
-    team1_glicko_rating_tensor = torch.tensor([[team1_glicko_rating]], dtype=torch.float32)
-    team2_glicko_rating_tensor = torch.tensor([[team2_glicko_rating]], dtype=torch.float32)
+    #team1_glicko_rating, team1_RD = calculate_average(players1_ids, player_glicko_ratings, player_RD)
+    #team2_glicko_rating, team2_RD = calculate_average(players2_ids, player_glicko_ratings, player_RD)
+    #team1_glicko_rating_tensor = torch.tensor([[team1_glicko_rating]], dtype=torch.float32)
+    #team2_glicko_rating_tensor = torch.tensor([[team2_glicko_rating]], dtype=torch.float32)
 
     # Asumiendo que `champion_themes` ya está cargado
-    champion_themes = load_champion_themes('info/color_themes.json')
+    #champion_themes = load_champion_themes('info/color_themes.json')
 
     # Calcula los puntajes de tema para cada equipo
-    puntaje_tema_equipo1 = calcular_puntajes_tematicos_para_equipo(champions1_ids, champion_themes)
-    puntaje_tema_equipo2 = calcular_puntajes_tematicos_para_equipo(champions2_ids, champion_themes)
+    #puntaje_tema_equipo1 = calcular_puntajes_tematicos_para_equipo(champions1_ids, champion_themes)
+    #puntaje_tema_equipo2 = calcular_puntajes_tematicos_para_equipo(champions2_ids, champion_themes)
 
     # Convertir los puntajes de tema a tensores
-    puntaje_tema_equipo1_tensor = torch.tensor([[puntaje_tema_equipo1]], dtype=torch.float32)
-    puntaje_tema_equipo2_tensor = torch.tensor([[puntaje_tema_equipo2]], dtype=torch.float32)
+    #puntaje_tema_equipo1_tensor = torch.tensor([[puntaje_tema_equipo1]], dtype=torch.float32)
+    #puntaje_tema_equipo2_tensor = torch.tensor([[puntaje_tema_equipo2]], dtype=torch.float32)
 
-    tema_equipo1 = calcular_tema_principal_equipo(champions1_ids, champion_themes)
-    tema_equipo1_tensor = torch.tensor([tema_equipo1], dtype=torch.long)	
-    tema_equipo2 = calcular_tema_principal_equipo(champions2_ids, champion_themes)
-    tema_equipo2_tensor = torch.tensor([tema_equipo2], dtype=torch.long)
+    #tema_equipo1 = calcular_tema_principal_equipo(champions1_ids, champion_themes)
+    #tema_equipo1_tensor = torch.tensor([tema_equipo1], dtype=torch.long)	
+    #tema_equipo2 = calcular_tema_principal_equipo(champions2_ids, champion_themes)
+    #tema_equipo2_tensor = torch.tensor([tema_equipo2], dtype=torch.long)
 
 
     print("-------------------------------------------------------------------------------------------------------------------------")
-    print(f"Blue Team: {team1_name} id: {team1}")
-    print(f"Blue Team Players: {players1} ids: {players1_ids}")
+    #print(f"Blue Team: {team1_name} id: {team1}")
+    #print(f"Blue Team Players: {players1} ids: {players1_ids}")
     print(f"Blue Team Champions: {champions1} ids: {champions1_ids}")
-    print(f"Blue Team Synergy: {team1_synergy}")
-    print(f"Blue Team Glicko: {team1_glicko_rating}")
-    print(f"Blue Team Theme Points: {puntaje_tema_equipo1}")
-    print(f"Blue Theme: {tema_equipo1}")
+    #print(f"Blue Team Synergy: {team1_synergy}")
+    #print(f"Blue Team Glicko: {team1_glicko_rating}")
+    #print(f"Blue Team Theme Points: {puntaje_tema_equipo1}")
+    #print(f"Blue Theme: {tema_equipo1}")
     print("-------------------------------------------------------------------------------------------------------------------------")
-    print(f"Red Team: {team2_name} id: {team2}")
-    print(f"Red Team Players: {players2} ids: {players2_ids}")
+    #print(f"Red Team: {team2_name} id: {team2}")
+    #print(f"Red Team Players: {players2} ids: {players2_ids}")
     print(f"Red Team Champions: {champions2} ids: {champions2_ids}")
-    print(f"Red Team Synergy: {team2_synergy}")
-    print(f"Red Team Glicko: {team2_glicko_rating}")
-    print(f"Red Team Theme Points: {puntaje_tema_equipo2}")
-    print(f"Red Team Theme: {tema_equipo2}")
+    #print(f"Red Team Synergy: {team2_synergy}")
+    #print(f"Red Team Glicko: {team2_glicko_rating}")
+    #print(f"Red Team Theme Points: {puntaje_tema_equipo2}")
+    #print(f"Red Team Theme: {tema_equipo2}")
     
     # Concatenate the tensors to form the complete numerical_features tensor
     all_features = torch.cat([
                                     #additional_numerical_features_tensor, 
-                                    puntaje_tema_equipo1_tensor,puntaje_tema_equipo2_tensor,
-                                    team1_glicko_rating_tensor, team2_glicko_rating_tensor, 
-                                    team1_synergy_tensor, team2_synergy_tensor,
+                                    #puntaje_tema_equipo1_tensor,puntaje_tema_equipo2_tensor,
+                                    #team1_glicko_rating_tensor, team2_glicko_rating_tensor, 
+                                    #team1_synergy_tensor, team2_synergy_tensor,
                                     champions_team1, champions_team2], dim=1)
     # Call the prediction function
     predicted_outcome = predict_model(model, device,all_features)
-    outcome = f"{team1_name} (Blue Team) Wins" if predicted_outcome.item() == 0 else f"{team2_name} (Red Team) Wins"
+    outcome = f"Blue Team Wins" if predicted_outcome.item() == 0 else f"Red Team Wins"
     print(f"Predicted outcome: {outcome}")

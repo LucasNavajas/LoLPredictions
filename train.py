@@ -42,7 +42,7 @@ def model_wrapper(x):
 
 
 # Load and preprocess data
-train_dataset, test_dataset, val_dataset, weights = load_and_preprocess_data('data/datasheetv2.csv')
+train_dataset, test_dataset, val_dataset, weights = load_and_preprocess_data('data/datasheetv3.csv')
 
 # Create DataLoaders for training and testing datasets
 train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
@@ -61,7 +61,7 @@ output_dim = 2  # Assuming binary classification for win/lose
 model = MatchPredictor(num_numerical_features, output_dim, num_champions, embedding_dim)
 
 
-weights = torch.tensor([1.0, 1.1])  # Aumenta el peso de la clase 0
+weights = torch.tensor([1.0, 1.0])  # Aumenta el peso de la clase 0
 class_weights = torch.FloatTensor(weights).cpu()
 
 # Cuando inicialices tu criterio de pérdida, pasa los pesos
@@ -73,7 +73,7 @@ device = torch.device('cpu')
 model.to(device)
 
 # Number of epochs
-num_epochs = 5
+num_epochs = 1000
 
 best_val_loss = np.inf
 patience = 100  # Number of epochs to wait for improvement before stopping

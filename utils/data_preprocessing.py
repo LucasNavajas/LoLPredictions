@@ -350,6 +350,25 @@ def calcular_tema_principal_equipo(champions_ids, champion_themes):
 
     return tema_principal
 
+def reverse_teams(df):
+    # Copia del DataFrame para modificar
+    df_copy = df.copy()
+
+    # Lista de columnas de equipos para intercambiar
+    team1_cols = [col for col in df.columns if '1' in col]
+    team2_cols = [col for col in df.columns if '2' in col]
+
+    # Mapeo de nombres de columnas para el intercambio
+    rename_dict = {t1: t2 for t1, t2 in zip(team1_cols, team2_cols)}
+    rename_dict.update({t2: t1 for t1, t2 in zip(team1_cols, team2_cols)})
+
+    # Intercambio de columnas
+    df_copy = df_copy.rename(columns=rename_dict)
+
+    # Ajustar 'TeamWinner' para reflejar el intercambio
+    df_copy['TeamWinner'] = df_copy['TeamWinner'].apply(lambda x: 1 if x == 0 else 0)
+
+    return pd.concat([df, df_copy], ignore_index=True)
 
 def load_and_preprocess_data(filepath):
     # Load the dataset
@@ -366,11 +385,12 @@ def load_and_preprocess_data(filepath):
     winrate_df = calculate_accumulative_regional_winrates(df)
     champion_synergy_df = calculate_champion_synergy(df, winrate_df)
     df = add_synergy_to_matches(df, champion_synergy_df)
+    df = reverse_teams(df)
     numerical_features = ['PuntajeTemaEquipo1', 'PuntajeTemaEquipo2', 'Team1Glicko', 'Team2Glicko']
     preprocessor = ColumnTransformer(
     transformers=[
-        ('num', StandardScaler(), numerical_features),
-        ('synergy', 'passthrough', ['Team1_Synergy', 'Team2_Synergy',
+        #('num', StandardScaler(), numerical_features),
+        ('synergy', 'passthrough', [#'Team1_Synergy', 'Team2_Synergy',
                                     'Top1Champion', 'Jg1Champion', 'Mid1Champion', 'Adc1Champion', 'Supp1Champion',
                                     'Top2Champion', 'Jg2Champion', 'Mid2Champion', 'Adc2Champion', 'Supp2Champion'])
     ], remainder='drop')
