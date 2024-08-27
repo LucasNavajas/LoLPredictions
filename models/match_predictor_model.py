@@ -1,42 +1,59 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 class MatchPredictor(nn.Module):
-    def __init__(self, num_features, output_dim, num_champions, embedding_dim):
+    def __init__(self, output_dim, num_champions, embedding_dim):
         super(MatchPredictor, self).__init__()
         
-        # Suponiendo que num_champions es el total de campeones únicos y embedding_dim es un hiperparámetro elegido
-        self.champion_embedding = nn.Embedding(num_champions, 5)
+        self.champion_embedding = nn.Embedding(num_champions, embedding_dim)
         
-        # Capas anteriores
+        self.team1_fc1 = nn.Linear(embedding_dim + 1, 50)
+        self.team1_fc2 = nn.Linear(50, 25)
+        self.team1_fc3 = nn.Linear(25, 10) 
+        
+        self.team2_fc1 = nn.Linear(embedding_dim + 1, 50)
+        self.team2_fc2 = nn.Linear(50, 25)
+        self.team2_fc3 = nn.Linear(25, 10)
+        
         self.group1_fc = nn.Linear(2, 25)
-        self.group2_fc = nn.Linear(2, 25) 
-        self.group3_fc = nn.Linear(2, 25)
+        self.group2_fc = nn.Linear(25, 50) 
+        self.group3_fc = nn.Linear(50, 25)
         
-        # Ajusta la entrada de la capa final para incluir todos los embeddings
-        self.final_fc = nn.Linear(#75 + 
-                                  5 * 10, output_dim) # Ajusta según sea necesario
+        self.final_fc = nn.Linear(25 + 10 * 10, output_dim)
 
     def forward(self, features):
-        # Extrae los índices de los campeones (últimos 10 elementos)
-        champion_indices = features[:, -10:].long()  # Asume que los últimos 10 son índices de campeones
+        glicko_team1 = features[:, 0].unsqueeze(1)  # Glicko rating for team 1
+        glicko_team2 = features[:, 1].unsqueeze(1)  # Glicko rating for team 2
         
-        # Resto de las características
-        #other_features = features[:, :-10]  # Todo excepto los últimos 10 elementos
+        # Extract champion indices (last 10 elements)
+        champion_indices = features[:, -10:].long() 
+
+        team1_indices = champion_indices[:, :5]
+        team2_indices = champion_indices[:, 5:] 
         
-        # Procesa los índices de los campeones con embeddings
-        champion_embeddings = [self.champion_embedding(champion_indices[:, i]) for i in range(10)]
-        champion_embeddings = torch.cat(champion_embeddings, dim=1)
+        team1_embeddings = [self.champion_embedding(team1_indices[:, i]) for i in range(5)]
+        processed_team1_embeddings = []
+        for embedding in team1_embeddings:
+            x = torch.cat((embedding, glicko_team1), dim=1)
+            x = F.relu(self.team1_fc1(x))
+            x = F.relu(self.team1_fc2(x))
+            x = F.relu(self.team1_fc3(x))
+            processed_team1_embeddings.append(x)
+        processed_team1_embeddings = torch.cat(processed_team1_embeddings, dim=1)
         
-       # group1_features = F.relu(self.group1_fc(other_features[:, 0:2]))
-        #group2_features = F.relu(self.group2_fc(other_features[:, 2:4]))
-       # group3_features = F.relu(self.group3_fc(other_features[:, 4:6]))
+        team2_embeddings = [self.champion_embedding(team2_indices[:, i]) for i in range(5)]
+        processed_team2_embeddings = []
+        for embedding in team2_embeddings:
+            x = torch.cat((embedding, glicko_team2), dim=1)
+            x = F.relu(self.team2_fc1(x))
+            x = F.relu(self.team2_fc2(x))
+            x = F.relu(self.team2_fc3(x)) 
+            processed_team2_embeddings.append(x)
+        processed_team2_embeddings = torch.cat(processed_team2_embeddings, dim=1)
+
+        concatenated = torch.cat(( processed_team1_embeddings, processed_team2_embeddings), dim=1)
         
-        # Concatena y pasa a través de la capa final
-        #concatenated = torch.cat((group1_features, group2_features, group3_features, 
-            #champion_embeddings), dim=1)
-        output = self.final_fc(champion_embeddings)
+        output = self.final_fc(concatenated)
         
         return output
-
-

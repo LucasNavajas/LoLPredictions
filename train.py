@@ -1,137 +1,146 @@
 import torch
 import numpy as np
-import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import Adam
-from torch.nn import CrossEntropyLoss
+from torch.nn import BCEWithLogitsLoss
 from utils.data_preprocessing import load_and_preprocess_data
 from models.match_predictor_model import MatchPredictor
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import random
 
-# Fijar la semilla para la reproducibilidad
+
 seed = 0
 torch.manual_seed(seed)
 np.random.seed(seed)
 random.seed(seed)
 
-# Además, si estás utilizando CUDA (PyTorch con GPU), también debes fijar la semilla para CUDA
 if torch.cuda.is_available():
     torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)  # para multi-GPU.
-    # Asegurarse de que PyTorch pueda reproducir resultados en GPU con la misma semilla
+    torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
 def model_wrapper(x):
-    # Convert the input from a NumPy array to a PyTorch tensor
     x_tensor = torch.tensor(x, dtype=torch.float32)
     
-    # Ensure the model is in evaluation mode
     model.eval()
     
-    # Move the tensor to the same device as the model
     x_tensor = x_tensor.to(device)
     
-    # Get the model's output and detach it from the computation graph
     with torch.no_grad():
         output = model(x_tensor).detach().cpu().numpy()
     
-    return output
+    binary_output = (output >= 0.5).astype(int)
+    
+    return binary_output
 
 
-# Load and preprocess data
 train_dataset, test_dataset, val_dataset, weights = load_and_preprocess_data('data/datasheetv3.csv')
 
-# Create DataLoaders for training and testing datasets
 train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
 valid_loader = DataLoader(val_dataset, batch_size=256, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
-num_teams = 283
-num_champions = 168
-num_players = 1554
-num_regions = 31
+num_champions = 169
 embedding_dim = 10
-num_themes = 7
-num_numerical_features = 6
-output_dim = 2  # Assuming binary classification for win/lose
+output_dim = 1
 
-model = MatchPredictor(num_numerical_features, output_dim, num_champions, embedding_dim)
+model = MatchPredictor(output_dim, num_champions, embedding_dim)
 
+weights = torch.tensor([1.0])
+class_weights = torch.FloatTensor(weights).to('cpu')
 
-weights = torch.tensor([1.0, 1.0])  # Aumenta el peso de la clase 0
-class_weights = torch.FloatTensor(weights).cpu()
+criterion = BCEWithLogitsLoss(pos_weight=class_weights)
+optimizer = Adam(model.parameters(), lr=0.0001)
 
-# Cuando inicialices tu criterio de pérdida, pasa los pesos
-criterion = nn.CrossEntropyLoss(class_weights)
-optimizer = Adam(model.parameters(), lr=0.001)
-
-# Setup device for training (GPU or CPU)
 device = torch.device('cpu')
 model.to(device)
 
-# Number of epochs
-num_epochs = 1000
+num_epochs = 120
 
 best_val_loss = np.inf
-patience = 100  # Number of epochs to wait for improvement before stopping
-patience_counter = 0
-accuracies = []
+train_accuracies = []
+val_accuracies = []
+val_losses = []
 
-# Training loop
 for epoch in range(num_epochs):
-    model.train()  # Set model to training mode
+    model.train()
+    train_correct = 0
+    train_total = 0
     for features, labels in train_loader:
-        # Move inputs and targets to the device (GPU or CPU)
         features = features.to(device)
-        labels = labels.to(device)
-        # Forward pass
-        predictions = model(features)
-        labels = labels.long()  # Ensure targets are of type long
+        labels = labels.to(device).float()
 
-        # Calculate loss
+        predictions = model(features).squeeze()  
+
         loss = criterion(predictions, labels)
 
-        # Backpropagation and optimizer step
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-    # Evaluation loop inside the epoch loop to calculate accuracy per epoch
-    model.eval()  # Set model to evaluation mode
+        outputs = torch.sigmoid(predictions)
+        predicted = (outputs > 0.5).float()
+        train_total += labels.size(0)
+        train_correct += (predicted == labels).sum().item()
+
+    model.eval() 
     valid_loss = 0.0
     correct = 0
     total = 0
     with torch.no_grad():
         for features, labels in valid_loader:
-            # Tu ciclo de validación aquí, similar al de prueba
             features = features.to(device)
-            labels = labels.to(device)
-            outputs = model(features)
-            _, predicted = torch.max(outputs.data, 1)
+            labels = labels.to(device).float()
+            outputs = model(features).squeeze()
+            outputs = torch.sigmoid(outputs)
+            predicted = (outputs > 0.5).float()
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
             loss = criterion(outputs, labels)
             valid_loss += loss.item()
 
-    # Calcula la precisión y la pérdida promedio de validación
     valid_accuracy = correct / total
     valid_loss /= len(valid_loader)
-    print(f'Epoch {epoch}, Valid Loss: {valid_loss}, Valid Accuracy: {valid_accuracy}')
-    epoch_accuracy = correct / total
-    accuracies.append(epoch_accuracy)
+    train_accuracy = train_correct / train_total
+    train_accuracies.append(train_accuracy)
+    val_accuracies.append(valid_accuracy)
+    val_losses.append(valid_loss)
+    print(f'Epoch {epoch}, Train Accuracy: {train_accuracy}, Valid Loss: {valid_loss}, Valid Accuracy: {valid_accuracy}')
 
-fig, ax = plt.subplots()
-ax.plot(range(num_epochs), accuracies)
-ax.set_xlabel('Epoch')
-ax.set_ylabel('Accuracy')
-ax.set_title('Accuracy per Epoch')
+fig, ax = plt.subplots(2, 1, figsize=(10, 8))
+ax[0].plot(range(num_epochs), train_accuracies, label='Train Accuracy')
+ax[0].plot(range(num_epochs), val_accuracies, label='Validation Accuracy')
+ax[0].set_xlabel('Epoch')
+ax[0].set_ylabel('Accuracy')
+ax[0].set_title('Training and Validation Accuracy per Epoch')
+ax[0].legend()
+
+ax[1].plot(range(num_epochs), val_losses, label='Validation Loss', color='red')
+ax[1].set_xlabel('Epoch')
+ax[1].set_ylabel('Loss')
+ax[1].set_title('Validation Loss per Epoch')
+ax[1].legend()
+
+plt.tight_layout()
 plt.show()
-accuracy = correct / total
+
+model.eval() 
+test_correct = 0
+test_total = 0
+with torch.no_grad():
+    for features, labels in test_loader:
+        features = features.to(device)
+        labels = labels.to(device).float()
+        outputs = model(features).squeeze()
+        outputs = torch.sigmoid(outputs)
+        predicted = (outputs > 0.5).float()
+        test_total += labels.size(0)
+        test_correct += (predicted == labels).sum().item()
+
+accuracy = test_correct / test_total
 print(f'Model accuracy on the test set: {accuracy * 100:.2f}%')
 
-# Save the trained model
 torch.save(model.state_dict(), 'model.pth')
 print('Training completed.')
