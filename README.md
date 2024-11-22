@@ -15,11 +15,12 @@ Features
 </ul>
 <br>
 <br>
-<b>ESPAÑOL</b> - Este repositorio contiene un proyecto en Python que predice los resultados de las partidas en League of Legends utilizando actualizaciones de las calificaciones Glicko y composiciones de equipo. Preprocesa datos, entrena un modelo en PyTorch y evalúa los resultados para determinar qué equipo tiene más probabilidades de ganar.
+<b>ESPAÑOL</b> - Este repositorio contiene un proyecto en Python que predice los resultados de las partidas en League of Legends utilizando actualizaciones de las calificaciones Glicko y composiciones de equipo. Preprocesa datos, entrena un modelo en PyTorch y evalúa los resultados para determinar qué equipo tiene más probabilidades de ganar.<br><br>
 
 Características
 
-<ul> <li><strong>Sistema de Calificación Glicko:</strong> Actualiza las calificaciones de los jugadores de forma dinámica según los resultados de las partidas.
+<ul> 
+<li><strong>Sistema de Calificación Glicko:</strong> Actualiza las calificaciones de los jugadores de forma dinámica según los resultados de las partidas.
   
 </li> <li><strong>Análisis de Composición de Equipo:</strong> Incorpora campeones y las calificaciones Glicko de los jugadores para predecir los resultados.
   
@@ -27,4 +28,4 @@ Características
   
 </li> <li><strong>Preprocesamiento de Datos:</strong> Limpia y transforma los datos de entrada para el entrenamiento utilizando Scikit-learn.</li> 
 
-  <li><strong>Verificación de Ganador Seguro:</strong> Evalúa si el ganador predicho es "seguro" al intercambiar las composiciones de equipo. Esta predicción de "ganador seguro" significa que el modelo considera que el ganador predicho también ganaría en términos de composición del equipo.</li> </ul>
+<li><strong>Verificación de Ganador Seguro:</strong> Evalúa si el ganador predicho es "seguro" al intercambiar las composiciones de equipo. Esta predicción de "ganador seguro" significa que el modelo considera que el ganador predicho también ganaría en términos de composición del equipo.</li> </ul>
