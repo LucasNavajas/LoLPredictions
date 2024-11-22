@@ -6,10 +6,9 @@ from torch.nn import BCEWithLogitsLoss
 from utils.data_preprocessing import load_and_preprocess_data
 from models.match_predictor_model import MatchPredictor
 import matplotlib.pyplot as plt
-import torch.nn.functional as F
 import random
 
-
+# Set random seed for reproducibility
 seed = 0
 torch.manual_seed(seed)
 np.random.seed(seed)
@@ -22,63 +21,59 @@ if torch.cuda.is_available():
     torch.backends.cudnn.benchmark = False
 
 def model_wrapper(x):
-    x_tensor = torch.tensor(x, dtype=torch.float32)
+    x_tensor = torch.tensor(x, dtype=torch.float32).to(device)
     
     model.eval()
     
-    x_tensor = x_tensor.to(device)
-    
-    with torch.no_grad():
-        output = model(x_tensor).detach().cpu().numpy()
+    with torch.no_grad(): 
+        output = model(x_tensor).detach().cpu().numpy() 
     
     binary_output = (output >= 0.5).astype(int)
     
     return binary_output
 
 
-train_dataset, test_dataset, val_dataset, weights = load_and_preprocess_data('data/datasheetv3.csv')
+train_dataset, test_dataset, val_dataset = load_and_preprocess_data('data/datasheetv3.csv')
+
 
 train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
 valid_loader = DataLoader(val_dataset, batch_size=256, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
-num_champions = 169
-embedding_dim = 10
-output_dim = 1
+
+num_champions = 169  
+embedding_dim = 10 
+output_dim = 1  
 
 model = MatchPredictor(output_dim, num_champions, embedding_dim)
 
-weights = torch.tensor([1.0])
-class_weights = torch.FloatTensor(weights).to('cpu')
-
-criterion = BCEWithLogitsLoss(pos_weight=class_weights)
-optimizer = Adam(model.parameters(), lr=0.0001)
+criterion = BCEWithLogitsLoss() 
+optimizer = Adam(model.parameters(), lr=0.0001) 
 
 device = torch.device('cpu')
 model.to(device)
 
-num_epochs = 120
+num_epochs = 120 
 
-best_val_loss = np.inf
 train_accuracies = []
 val_accuracies = []
 val_losses = []
 
 for epoch in range(num_epochs):
-    model.train()
+    model.train()  
     train_correct = 0
     train_total = 0
+    
     for features, labels in train_loader:
-        features = features.to(device)
-        labels = labels.to(device).float()
+        features, labels = features.to(device), labels.to(device).float()
 
         predictions = model(features).squeeze()  
 
-        loss = criterion(predictions, labels)
+        loss = criterion(predictions, labels)  
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+        optimizer.zero_grad() 
+        loss.backward() 
+        optimizer.step() 
 
         outputs = torch.sigmoid(predictions)
         predicted = (outputs > 0.5).float()
@@ -91,8 +86,7 @@ for epoch in range(num_epochs):
     total = 0
     with torch.no_grad():
         for features, labels in valid_loader:
-            features = features.to(device)
-            labels = labels.to(device).float()
+            features, labels = features.to(device), labels.to(device).float()
             outputs = model(features).squeeze()
             outputs = torch.sigmoid(outputs)
             predicted = (outputs > 0.5).float()
@@ -107,8 +101,10 @@ for epoch in range(num_epochs):
     train_accuracies.append(train_accuracy)
     val_accuracies.append(valid_accuracy)
     val_losses.append(valid_loss)
+
     print(f'Epoch {epoch}, Train Accuracy: {train_accuracy}, Valid Loss: {valid_loss}, Valid Accuracy: {valid_accuracy}')
 
+# Plot training and validation accuracy/loss
 fig, ax = plt.subplots(2, 1, figsize=(10, 8))
 ax[0].plot(range(num_epochs), train_accuracies, label='Train Accuracy')
 ax[0].plot(range(num_epochs), val_accuracies, label='Validation Accuracy')
@@ -126,18 +122,19 @@ ax[1].legend()
 plt.tight_layout()
 plt.show()
 
+
 model.eval() 
 test_correct = 0
 test_total = 0
 with torch.no_grad():
     for features, labels in test_loader:
-        features = features.to(device)
-        labels = labels.to(device).float()
+        features, labels = features.to(device), labels.to(device).float()
         outputs = model(features).squeeze()
         outputs = torch.sigmoid(outputs)
         predicted = (outputs > 0.5).float()
         test_total += labels.size(0)
         test_correct += (predicted == labels).sum().item()
+
 
 accuracy = test_correct / test_total
 print(f'Model accuracy on the test set: {accuracy * 100:.2f}%')

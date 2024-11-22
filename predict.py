@@ -6,6 +6,7 @@ from joblib import load
 import torch.nn.functional as F
 
 
+
 def load_ids_from_json(filepath):
     with open(filepath, 'r', encoding='utf-8') as file:
         ids = json.load(file)
@@ -72,19 +73,19 @@ if __name__ == "__main__":
     player_glicko_ratings = glicko_ratings['player_glicko']
     player_RD = glicko_ratings["player_RD"]
 
-    players1 = "siwoo,sharvel,saint,wayne,bible"
+    players1 = "bin,xun,knight,elk,on"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "lancer,courage,pungyeon,bull,quantum"
+    players2 = "zeus,oner,faker,gumayusi,keria"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "gnar,zyra,corki,ashe,nautilus"
+    champions1 = "jax,jarvan iv,ahri,kaisa,rell"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "renekton,lillia,zeri,miss fortune,alistar"
+    champions2 = "gragas,xin zhao,galio,xayah,poppy"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
@@ -119,6 +120,7 @@ if __name__ == "__main__":
     else:
         probability_difference = original_probability - swapped_probability
 
+    print(f"MODEL: {model_path}")
     # Determine if the winner is "safe"
     if predicted_outcome_original == "Blue Team Wins":
         if original_probability < swapped_probability or (original_probability < 0.5 and swapped_probability > 0.5):
@@ -131,7 +133,7 @@ if __name__ == "__main__":
         else:
             print(f"Predicted outcome: {predicted_outcome_original} (not safe)")
             
-    print(original_probability)
-    print(swapped_probability)
+    print(f"Original probability: {original_probability}")
+    print(f"Swapped probability: {swapped_probability}")
 
     print(f"Difference between original and swapped probabilities: {probability_difference:.4f}")
