@@ -244,6 +244,7 @@
     <p id="result"></p>
 
     <script>
+        import { API_URL } from "./config.js";
         document.getElementById('endpointForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
@@ -253,7 +254,6 @@
             const champions2 = document.getElementById('champions2').value.split(',').map(item => item.trim());
 
             // Adjust the URL to point to your SageMaker endpoint
-            const endpointUrl = 'https://r3zwjykyn7.execute-api.us-east-2.amazonaws.com/LolPredictions';
 
             // Create the request payload
             const payload = JSON.stringify({
@@ -264,7 +264,7 @@
             });
 
             try {
-                const response = await fetch(endpointUrl, {
+                const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
