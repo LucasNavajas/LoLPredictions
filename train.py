@@ -41,7 +41,7 @@ valid_loader = DataLoader(val_dataset, batch_size=256, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
 
-num_champions = 169  
+num_champions = 170  
 embedding_dim = 10 
 output_dim = 1  
 

@@ -5,8 +5,6 @@ from models.match_predictor_model import MatchPredictor
 from joblib import load
 import torch.nn.functional as F
 
-
-
 def load_ids_from_json(filepath):
     with open(filepath, 'r', encoding='utf-8') as file:
         ids = json.load(file)
@@ -56,7 +54,7 @@ def calculate_average(player_ids, player_glicko_ratings, player_RD):
     return ratings_sum / num_players, RD_sum / num_players 
 
 if __name__ == "__main__":
-    num_champions = 169
+    num_champions = 170
     embedding_dim = 10
     output_dim = 1 
 
@@ -73,19 +71,19 @@ if __name__ == "__main__":
     player_glicko_ratings = glicko_ratings['player_glicko']
     player_RD = glicko_ratings["player_RD"]
 
-    players1 = "bin,xun,knight,elk,on"
+    players1 = "oscarinin,razork,humanoid,upset,mikyx"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "zeus,oner,faker,gumayusi,keria"
+    players2 = "canna,yike,vladi,caliste,targamas"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "jax,jarvan iv,ahri,kaisa,rell"
+    champions1 = "ambessa,vi,aurora,kaisa,rakan"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "gragas,xin zhao,galio,xayah,poppy"
+    champions2 = "poppy,xin zhao,azir,ezreal,leona"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
