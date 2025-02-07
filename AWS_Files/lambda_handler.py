@@ -7,7 +7,6 @@ runtime = boto3.client('runtime.sagemaker')
 def lambda_handler(event, context):
 
     try:
-        # Input validation
         if not isinstance(event, dict):
             raise ValueError("Invalid input format. Must be a JSON object.")
 
