@@ -19,7 +19,7 @@
         if (count % 6 === 0) html += "<tr>";
 
         const imgElement = `<td style='text-align: center; padding: 15px;'>
-            <div style="display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; background-image: url('champion_images/${champion}.png');
+            <div style="display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; background-image: url('assets/champion_images/${champion}.png');
             background-size: cover; background-position: center; border-radius: 10px; cursor: grab; margin: auto;"
             draggable='true' data-champion='${champion}'></div>
             <span style='display: block; font-size: 14px; font-weight: bold; color: black; margin-top: 5px;'>${champion}</span>
@@ -63,7 +63,7 @@
                     }
                 }
 
-                box.style.backgroundImage = `url('champion_images/${newChampion}.png')`;
+                box.style.backgroundImage = `url('assets/champion_images/${newChampion}.png')`;
                 box.setAttribute("champion", newChampion);
 
                 const newChampionElement = document.querySelector(`[data-champion='${newChampion}']`);
@@ -72,7 +72,36 @@
                     newChampionElement.style.cursor = "not-allowed";
                     newChampionElement.style.opacity = "0.5"; 
                 }
+                if (!box.querySelector(".remove-button")) {
+                    const removeBtn = document.createElement("img");
+                    removeBtn.src = "assets/imgs/remove.png";
+                    removeBtn.classList.add("remove-button");
+                    removeBtn.style.position = "absolute";
+                    removeBtn.style.top = "5px";
+                    removeBtn.style.right = "5px";
+                    removeBtn.style.width = "25px";
+                    removeBtn.style.height = "25px";
+                    removeBtn.style.cursor = "pointer";
+                    removeBtn.style.borderRadius = "50%";
+                    removeBtn.style.padding = "3px";
+
+                    removeBtn.addEventListener("click", function () {
+                        box.removeAttribute("champion");
+                        box.style.backgroundImage = "url(assets/champion_images/-1.png)";
+                        removeBtn.remove();
+
+                        if (newChampionElement) {
+                            newChampionElement.setAttribute("draggable", "true");
+                            newChampionElement.style.cursor = "grab";
+                            newChampionElement.style.opacity = "1";
+                        }
+                    });
+
+                    box.style.position = "relative";
+                    box.appendChild(removeBtn);
+                }
             }
+            
         });
     });
 });
@@ -83,19 +112,19 @@
 </head>
 <body>
     <div class="stacked-boxes">
-        <div class="box dropeable" style="background-image: url('champion_images/-1.png');" data-slot = "1"></div>
-        <div class="box dropeable" style="background-image: url('champion_images/-1.png');" data-slot = "2"></div>
-        <div class="box dropeable" style="background-image: url('champion_images/-1.png');" data-slot = "3"></div>
-        <div class="box dropeable" style="background-image: url('champion_images/-1.png');" data-slot = "4"></div>
-        <div class="box dropeable" style="background-image: url('champion_images/-1.png');" data-slot = "5"></div>
+        <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot = "1"></div>
+        <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot = "2"></div>
+        <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot = "3"></div>
+        <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot = "4"></div>
+        <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot = "5"></div>
     </div>
     <div class="scrollable-table" id="champion-grid"></div>
     <div class="stacked-boxes">
-        <div class="box dropeable" style="background-image: url('champion_images/-1.png');" data-slot = "6"></div>
-        <div class="box dropeable" style="background-image: url('champion_images/-1.png');" data-slot = "7"></div>
-        <div class="box dropeable" style="background-image: url('champion_images/-1.png');" data-slot = "8"></div>
-        <div class="box dropeable" style="background-image: url('champion_images/-1.png');" data-slot = "9"></div>
-        <div class="box dropeable" style="background-image: url('champion_images/-1.png');" data-slot = "10"></div>
+        <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot = "6"></div>
+        <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot = "7"></div>
+        <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot = "8"></div>
+        <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot = "9"></div>
+        <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot = "10"></div>
     </div>
     <!-- <h1>SageMaker Endpoint Interaction</h1>
     <form id="endpointForm">
