@@ -36,14 +36,12 @@
 
     container.innerHTML = html;
 
-    // Add drag functionality
     document.querySelectorAll("[draggable='true']").forEach(imgElement => {
         imgElement.addEventListener("dragstart", function (event) {
             event.dataTransfer.setData("text", imgElement.dataset.champion);
         });
     });
 
-    // Add drop functionality to boxes
     droppableBoxes.forEach(box => {
         box.addEventListener("dragover", function (event) {
             event.preventDefault();
@@ -54,6 +52,8 @@
             const champion = event.dataTransfer.getData("text");
             if (champion) {
                 box.style.backgroundImage = `url('champion_images/${champion}.png')`;
+                box.setAttribute("champion", `${champion}`);
+
             }
         });
     });
