@@ -49,11 +49,29 @@
 
         box.addEventListener("drop", function (event) {
             event.preventDefault();
-            const champion = event.dataTransfer.getData("text");
-            if (champion) {
-                box.style.backgroundImage = `url('champion_images/${champion}.png')`;
-                box.setAttribute("champion", `${champion}`);
+            const newChampion = event.dataTransfer.getData("text");
 
+            if (newChampion) {
+                const previousChampion = box.getAttribute("champion");
+
+                if (previousChampion) {
+                    const previousChampionElement = document.querySelector(`[data-champion='${previousChampion}']`);
+                    if (previousChampionElement) {
+                        previousChampionElement.setAttribute("draggable", "true");
+                        previousChampionElement.style.cursor = "grab";
+                        previousChampionElement.style.opacity = "1";
+                    }
+                }
+
+                box.style.backgroundImage = `url('champion_images/${newChampion}.png')`;
+                box.setAttribute("champion", newChampion);
+
+                const newChampionElement = document.querySelector(`[data-champion='${newChampion}']`);
+                if (newChampionElement) {
+                    newChampionElement.setAttribute("draggable", "false");
+                    newChampionElement.style.cursor = "not-allowed";
+                    newChampionElement.style.opacity = "0.5"; 
+                }
             }
         });
     });
