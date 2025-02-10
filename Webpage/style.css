@@ -28,11 +28,29 @@ body {
     padding: 20px;
     background-color: #f4f4f4;
 }
-.stacked-boxes {
+.stacked-boxes-container {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    align-items: center;
 }
+
+.stacked-box {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adds spacing between input and box */
+}
+
+.box-label {
+    width: 100px;
+    height: 30px;
+    text-align: center;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+}
+
 .box {
     width: 8rem;
     height: 8rem;
@@ -40,7 +58,9 @@ body {
     background-position: center;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: grab;
 }
+
 .scrollable-table {
     max-height: 500px;
     overflow-y: auto;
