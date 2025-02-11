@@ -80,3 +80,13 @@ td {
     transform: scale(1.1);
     background: rgba(0, 0, 0, 1);
 }
+
+datalist {
+    max-height: 150px; 
+    overflow-y: auto;
+    display: block;
+}
+
+::-webkit-calendar-picker-indicator {
+    display: none !important;
+}
