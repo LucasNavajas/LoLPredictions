@@ -1,17 +1,31 @@
+/* General Page Styling */
 body {
     font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    background-color: #f4f4f4;
 }
+
+/* Form Styling */
 form {
     margin-bottom: 20px;
 }
+
 label {
     display: block;
     margin: 5px 0 2px;
 }
+
 input[type="text"] {
     width: 300px;
     margin-bottom: 10px;
 }
+
+/* Result Box */
 #result {
     margin-top: 20px;
     padding: 10px;
@@ -19,15 +33,7 @@ input[type="text"] {
     background-color: #f9f9f9;
 }
 
-body {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 20px;
-    padding: 20px;
-    background-color: #f4f4f4;
-}
+/* Stacked Boxes Container */
 .stacked-boxes-container {
     display: flex;
     flex-direction: column;
@@ -35,14 +41,16 @@ body {
     align-items: center;
 }
 
+/* Each Stacked Box */
 .stacked-box {
     display: flex;
     align-items: center;
-    gap: 10px; /* Adds spacing between input and box */
+    gap: 10px;
 }
 
+/* Champion Input Labels */
 .box-label {
-    width: 100px;
+    width: 120px;
     height: 30px;
     text-align: center;
     font-size: 14px;
@@ -51,6 +59,7 @@ body {
     padding: 5px;
 }
 
+/* Champion Image Boxes */
 .box {
     width: 8rem;
     height: 8rem;
@@ -61,14 +70,18 @@ body {
     cursor: grab;
 }
 
+/* Scrollable Table for Champions */
 .scrollable-table {
     max-height: 500px;
     overflow-y: auto;
     border: 1px solid #ccc;
 }
+
+/* Table Styling */
 table {
     border-collapse: collapse;
 }
+
 td {
     width: 150px;
     height: 150px;
@@ -76,17 +89,57 @@ td {
     background-position: center;
     border: 1px solid #ddd;
 }
+
+/* Remove Button Effects */
 .remove-button:hover {
     transform: scale(1.1);
     background: rgba(0, 0, 0, 1);
 }
 
+/* Scrollable Data List */
 datalist {
-    max-height: 150px; 
+    max-height: 150px;
     overflow-y: auto;
     display: block;
 }
 
+/* Hide Calendar Picker Indicator */
 ::-webkit-calendar-picker-indicator {
     display: none !important;
+}
+
+/* Predict Button Styling */
+#predict-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+#predict-button:hover {
+    background-color: #0056b3;
+}
+
+/* Make everything stack properly */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.draft {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    background-color: #f4f4f4;
+    
 }
