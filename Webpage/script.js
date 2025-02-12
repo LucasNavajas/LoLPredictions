@@ -133,13 +133,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                 alert("Invalid player name! Please select from the list.");
                 this.value = "";
             } else {
+                dataList.remove();
                 moveToNextInput(index);
+                
             }
         });
 
         input.addEventListener("keydown", function (event) {
             if (event.key === "Enter") {
                 event.preventDefault();
+                dataList.remove();
                 moveToNextInput(index);
             }
         });
@@ -148,7 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function updateDatalist(dataList, inputValue) {
         dataList.innerHTML = "";
-        
+        if (inputValue.length < 1) return;
         const filteredNames = playerNames.filter(name => name.toLowerCase().includes(inputValue.toLowerCase()));
         
         filteredNames.slice(0, 4).forEach(name => {
