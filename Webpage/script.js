@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 <div style="display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; background-image: url('assets/champion_images/${champion}.png');
                 background-size: cover; background-position: center; border-radius: 10px; cursor: grab; margin: auto;"
                 draggable='true' data-champion='${champion}'></div>
-                <span style='display: block; font-size: 14px; font-weight: bold; color: black; margin-top: 5px;'>${champion}</span>
+                <span style='display: block; font-size: 14px; font-weight: bold; color: white; margin-top: 5px;'>${champion}</span>
             </td>`;
 
             html += imgElement;

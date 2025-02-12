@@ -1,4 +1,4 @@
-/* General Page Styling */
+
 body {
     font-family: Arial, sans-serif;
     display: flex;
@@ -7,10 +7,10 @@ body {
     justify-content: center;
     gap: 20px;
     padding: 20px;
-    background-color: #f4f4f4;
+    background-image: url('assets/imgs/F5141416.png');
 }
 
-/* Form Styling */
+
 form {
     margin-bottom: 20px;
 }
@@ -25,15 +25,14 @@ input[type="text"] {
     margin-bottom: 10px;
 }
 
-/* Result Box */
+
 #result {
     margin-top: 20px;
     padding: 10px;
     border: 1px solid #ccc;
-    background-color: #f9f9f9;
 }
 
-/* Stacked Boxes Container */
+
 .stacked-boxes-container {
     display: flex;
     flex-direction: column;
@@ -41,14 +40,14 @@ input[type="text"] {
     align-items: center;
 }
 
-/* Each Stacked Box */
+
 .stacked-box {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* Champion Input Labels */
+
 .box-label {
     width: 120px;
     height: 30px;
@@ -59,7 +58,7 @@ input[type="text"] {
     padding: 5px;
 }
 
-/* Champion Image Boxes */
+
 .box {
     width: 8rem;
     height: 8rem;
@@ -70,16 +69,17 @@ input[type="text"] {
     cursor: grab;
 }
 
-/* Scrollable Table for Champions */
+
 .scrollable-table {
-    max-height: 500px;
+    max-height: 680px;
     overflow-y: auto;
-    border: 1px solid #ccc;
 }
 
-/* Table Styling */
+
 table {
     border-collapse: collapse;
+    background-color: black;
+    border: none;
 }
 
 td {
@@ -87,28 +87,44 @@ td {
     height: 150px;
     background-size: cover;
     background-position: center;
-    border: 1px solid #ddd;
 }
 
-/* Remove Button Effects */
+::-webkit-scrollbar {
+    width: 8px; 
+}
+
+::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #222;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #333; 
+}
+
+
 .remove-button:hover {
     transform: scale(1.1);
     background: rgba(0, 0, 0, 1);
 }
 
-/* Scrollable Data List */
+
 datalist {
     max-height: 150px;
     overflow-y: auto;
     display: block;
 }
 
-/* Hide Calendar Picker Indicator */
+
 ::-webkit-calendar-picker-indicator {
     display: none !important;
 }
 
-/* Predict Button Styling */
+
 #predict-button {
     margin-top: 20px;
     padding: 10px 20px;
@@ -125,7 +141,7 @@ datalist {
     background-color: #0056b3;
 }
 
-/* Make everything stack properly */
+
 .container {
     display: flex;
     flex-direction: column;
@@ -140,6 +156,4 @@ datalist {
     justify-content: center;
     gap: 20px;
     padding: 20px;
-    background-color: #f4f4f4;
-    
 }
