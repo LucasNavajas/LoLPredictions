@@ -126,18 +126,22 @@ datalist {
 
 
 #predict-button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #007BFF;
+    background-color: #ccc;
+    cursor: not-allowed;
     color: white;
     border: none;
+    padding: 10px 20px;
+    font-size: 16px;
     border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s ease-in-out;
+    transition: background-color 0.3s ease, cursor 0.3s ease;
 }
 
-#predict-button:hover {
+#predict-button.enabled {
+    background-color: #007BFF;
+    cursor: pointer;
+}
+
+#predict-button.enabled:hover {
     background-color: #0056b3;
 }
 

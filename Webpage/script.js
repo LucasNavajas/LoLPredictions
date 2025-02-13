@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             const imgElement = `<td style='text-align: center; padding: 15px;'>
                 <div style="display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; background-image: url('assets/champion_images/${champion}.png');
-                background-size: cover; background-position: center; border-radius: 10px; cursor: grab; margin: auto;"
+                background-size: cover; background-position: center; border-radius: 30px; cursor: grab; margin: auto;"
                 draggable='true' data-champion='${champion}'></div>
                 <span style='display: block; font-size: 14px; font-weight: bold; color: white; margin-top: 5px;'>${champion}</span>
             </td>`;
@@ -65,6 +65,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                         newChampionElement.setAttribute("draggable", "false");
                         newChampionElement.style.cursor = "not-allowed";
                         newChampionElement.style.opacity = "0.5"; 
+                        newChampionElement.style.filter = "grayscale(100%)"
                     }
                     if (!box.querySelector(".remove-button")) {
                         const removeBtn = document.createElement("img");
@@ -88,6 +89,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                                 newChampionElement.setAttribute("draggable", "true");
                                 newChampionElement.style.cursor = "grab";
                                 newChampionElement.style.opacity = "1";
+                                newChampionElement.style.filter = "grayscale(0%)"
                             }
                         });
 
@@ -131,6 +133,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         input.addEventListener("change", function () {
             if (!playerNamesLower.includes(this.value.toLowerCase())) {
                 alert("Invalid player name! Please select from the list.");
+                const predictButton = document.getElementById("predict-button");
+                predictButton.disabled = true;
+                predictButton.classList.remove("enabled");
                 this.value = "";
             } else {
                 dataList.remove();
@@ -196,4 +201,35 @@ document.getElementById("predict-button").addEventListener("click", function() {
     console.log("Blue Side Champions:", JSON.stringify(blueChampions, null, 2));
     console.log("Red Side Players:", JSON.stringify(redPlayers, null, 2));
     console.log("Red Side Champions:", JSON.stringify(redChampions, null, 2));
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const predictButton = document.getElementById("predict-button");
+    const inputs = document.querySelectorAll(".box-label");
+    const boxes = document.querySelectorAll(".box.dropeable");
+
+    function checkConditions() {
+        let allInputsFilled = Array.from(inputs).every(input => input.value.trim() !== "");
+        let allBoxesHaveChampion = Array.from(boxes).every(box => box.hasAttribute("champion"));
+
+        if (allInputsFilled && allBoxesHaveChampion) {
+            predictButton.disabled = false;
+            predictButton.classList.add("enabled");
+        } else {
+            predictButton.disabled = true;
+            predictButton.classList.remove("enabled");
+        }
+    }
+
+    inputs.forEach(input => {
+        input.addEventListener("input", checkConditions);
+    });
+
+    const observer = new MutationObserver(() => checkConditions());
+
+    boxes.forEach(box => {
+        observer.observe(box, { attributes: true, attributeFilter: ["champion"] });
+    });
+
+    checkConditions();
 });
