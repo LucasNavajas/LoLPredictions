@@ -134,8 +134,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!playerNamesLower.includes(this.value.toLowerCase())) {
                 alert("Invalid player name! Please select from the list.");
                 const predictButton = document.getElementById("predict-button");
+                const predictDraftButton = document.getElementById("predict-draft-button");
                 predictButton.disabled = true;
                 predictButton.classList.remove("enabled");
+                predictDraftButton.disabled = true;
+                predictDraftButton.classList.remove("enabled");
                 this.value = "";
             } else {
                 dataList.remove();
@@ -205,6 +208,7 @@ document.getElementById("predict-button").addEventListener("click", function() {
 
 document.addEventListener("DOMContentLoaded", function () {
     const predictButton = document.getElementById("predict-button");
+    const predictDraftButton = document.getElementById("predict-draft-button");
     const inputs = document.querySelectorAll(".box-label");
     const boxes = document.querySelectorAll(".box.dropeable");
 
@@ -215,9 +219,15 @@ document.addEventListener("DOMContentLoaded", function () {
         if (allInputsFilled && allBoxesHaveChampion) {
             predictButton.disabled = false;
             predictButton.classList.add("enabled");
+
+            predictDraftButton.disabled = false;
+            predictDraftButton.classList.add("enabled");
         } else {
             predictButton.disabled = true;
             predictButton.classList.remove("enabled");
+
+            predictDraftButton.disabled = true;
+            predictDraftButton.classList.remove("enabled");
         }
     }
 

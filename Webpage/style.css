@@ -124,8 +124,15 @@ datalist {
     display: none !important;
 }
 
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
 
-#predict-button {
+#predict-button, #predict-draft-button {
+    margin-right: 20px;
+    width: 15rem;
     background-color: #ccc;
     cursor: not-allowed;
     color: white;
@@ -136,12 +143,12 @@ datalist {
     transition: background-color 0.3s ease, cursor 0.3s ease;
 }
 
-#predict-button.enabled {
+#predict-button.enabled, #predict-draft-button.enabled {
     background-color: #007BFF;
     cursor: pointer;
 }
 
-#predict-button.enabled:hover {
+#predict-button.enabled:hover, #predict-draft-button.enabled:hover {
     background-color: #0056b3;
 }
 
