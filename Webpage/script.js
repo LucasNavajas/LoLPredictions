@@ -126,13 +126,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         dataList.id = `datalist-${input.dataset.slot}`;
         document.body.appendChild(dataList);
         input.setAttribute("list", dataList.id);
+        const errorMessage = input.nextElementSibling; 
 
         input.addEventListener("focus", () => updateDatalist(dataList, input.value));
         input.addEventListener("input", () => updateDatalist(dataList, input.value));
 
         input.addEventListener("change", function () {
             if (!playerNamesLower.includes(this.value.toLowerCase())) {
-                alert("Invalid player name! Please select from the list.");
+
+                this.style.border = "2px solid red";
+                errorMessage.style.visibility = "visible"
+
                 const predictButton = document.getElementById("predict-button");
                 const predictDraftButton = document.getElementById("predict-draft-button");
                 predictButton.disabled = true;
@@ -141,6 +145,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 predictDraftButton.classList.remove("enabled");
                 this.value = "";
             } else {
+                this.style.border = "2px solid white";
+                errorMessage.style.visibility = "hidden"
                 dataList.remove();
                 moveToNextInput(index);
                 
