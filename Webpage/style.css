@@ -190,14 +190,15 @@ datalist {
     border: none; 
     color: gray;
     font-family: 'BeaufortforLOL', sans-serif; 
-    font-size: 16px;
+    font-size: 18px;
     padding: 10px 20px;
     margin-right: 20px;
     cursor: not-allowed;
-    width: 200px; 
-    height: 50px; 
+    width: 250px; 
+    height: 62.5px; 
     transition: opacity 0.3s ease-in-out; 
     position: relative;
+    user-select: none; 
 }
 
 #predict-button span, #predict-draft-button span{
