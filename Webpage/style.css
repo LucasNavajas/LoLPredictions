@@ -182,25 +182,38 @@ datalist {
 }
 
 #predict-button, #predict-draft-button {
-    margin-right: 20px;
-    width: 15rem;
-    background-color: #ccc;
-    cursor: not-allowed;
-    color: white;
-    border: none;
-    padding: 10px 20px;
+    background-color: transparent;
+    background-image: url('assets/imgs/button-accept-disabled.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: none; 
+    color: gray;
+    font-family: 'BeaufortforLOL', sans-serif; 
     font-size: 16px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease, cursor 0.3s ease;
+    padding: 10px 20px;
+    margin-right: 20px;
+    cursor: not-allowed;
+    width: 200px; 
+    height: 50px; 
+    transition: opacity 0.3s ease-in-out; 
+    position: relative;
+}
+
+#predict-button span, #predict-draft-button span{
+    position: relative;
+    top: -0.25rem;
 }
 
 #predict-button.enabled, #predict-draft-button.enabled {
-    background-color: #007BFF;
+    background-image: url('assets/imgs/button-accept-default.png');
+    color: white;
     cursor: pointer;
 }
 
 #predict-button.enabled:hover, #predict-draft-button.enabled:hover {
-    background-color: #0056b3;
+    background-image: url('assets/imgs/button-accept-hover.png');
+    color: white;
 }
 
 
