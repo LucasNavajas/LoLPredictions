@@ -69,8 +69,9 @@ document.addEventListener("DOMContentLoaded", async function () {
                     }
                     if (!box.querySelector(".remove-button")) {
                         const removeBtn = document.createElement("img");
-                        removeBtn.src = "assets/imgs/remove.png";
+                        removeBtn.src = "assets/imgs/x.png";
                         removeBtn.classList.add("remove-button");
+                        removeBtn.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
                         removeBtn.style.position = "absolute";
                         removeBtn.style.top = "5px";
                         removeBtn.style.right = "5px";
@@ -185,6 +186,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 document.getElementById("predict-button").addEventListener("click", function() {
+    const winnerOverlay = document.getElementById("winner-overlay");
+    const container = document.getElementById("champion-grid");
+
+    winnerOverlay.style.display = "flex";
+    container.style.visibility = "hidden";
+
     let bluePlayers = [];
     let blueChampions = [];
     let redPlayers = [];
@@ -217,6 +224,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const predictDraftButton = document.getElementById("predict-draft-button");
     const inputs = document.querySelectorAll(".box-label");
     const boxes = document.querySelectorAll(".box.dropeable");
+    const closeOverlay = document.getElementById("close-overlay");
 
     function checkConditions() {
         let allInputsFilled = Array.from(inputs).every(input => input.value.trim() !== "");
@@ -248,4 +256,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     checkConditions();
+
+    function closeWinnerOverlay() {
+        const container = document.getElementById("champion-grid");
+        const winnerOverlay = document.getElementById("winner-overlay");
+        winnerOverlay.style.display = "none";
+        container.style.visibility = "visible"
+    }
+
+    closeOverlay.addEventListener("click", closeWinnerOverlay);
 });
