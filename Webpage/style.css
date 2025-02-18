@@ -262,9 +262,22 @@ datalist {
 
     width: 400px; 
     height: 200px; 
-    align-items: center;
-    justify-content: center; 
+    
+    align-items: center; 
+    justify-content: center;
 }
+
+.winner-overlay div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.winner-overlay .chance-text {
+    font-size: 1.5rem;
+    margin-top: 10px;
+}
+
 
 .close-btn {
     position: absolute;

@@ -184,12 +184,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 });
-
 document.getElementById("predict-button").addEventListener("click", function() {
+    processPrediction();
+});
+
+document.getElementById("predict-draft-button").addEventListener("click", function() {
+    processPrediction();
+});
+
+function processPrediction() {
     const winnerOverlay = document.getElementById("winner-overlay");
     const container = document.getElementById("champion-grid");
 
     winnerOverlay.style.display = "flex";
+    winnerOverlay.style.flexDirection = "column";
     container.style.visibility = "hidden";
 
     let bluePlayers = [];
@@ -203,7 +211,7 @@ document.getElementById("predict-button").addEventListener("click", function() {
         let bgImage = championBox.style.backgroundImage;
         let championName = bgImage.match(/assets\/champion_images\/(.*?).png/);
         championName = championName ? championName[1] : "Unknown";
-        
+
         if (slot >= 1 && slot <= 5) {
             bluePlayers.push(input.value);
             blueChampions.push(championName);
@@ -212,12 +220,45 @@ document.getElementById("predict-button").addEventListener("click", function() {
             redChampions.push(championName);
         }
     });
-    
-    console.log("Blue Side Players:", JSON.stringify(bluePlayers, null, 2));
-    console.log("Blue Side Champions:", JSON.stringify(blueChampions, null, 2));
-    console.log("Red Side Players:", JSON.stringify(redPlayers, null, 2));
-    console.log("Red Side Champions:", JSON.stringify(redChampions, null, 2));
-});
+
+    let requestData = {
+        players1: bluePlayers,
+        players2: redPlayers,
+        champions1: blueChampions,
+        champions2: redChampions
+    };
+
+    console.log("Sending Request Data:", JSON.stringify(requestData, null, 2));
+
+    fetch("https://r3zwjykyn7.execute-api.us-east-2.amazonaws.com/LolPredictions", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("API Response:", data);
+
+        const prediction = data.prediction;
+        const chanceText = document.querySelector("#winner-overlay .chance-text");
+        const winnerText = document.querySelector("#winner-overlay div:nth-child(2)");
+
+        if (prediction < 0.5) {
+            winnerText.textContent = "Blue Team Wins";
+            chanceText.textContent = `${((1 - prediction) * 100).toFixed(2)}% chance`;
+        } else {
+            winnerText.textContent = "Red Team Wins";
+            chanceText.textContent = `${(prediction * 100).toFixed(2)}% chance`;
+        }
+    })
+    .catch(error => {
+        console.error("Error calling API:", error);
+    });
+}
+
+
 
 document.addEventListener("DOMContentLoaded", function () {
     const predictButton = document.getElementById("predict-button");
