@@ -122,7 +122,7 @@ input:focus {
 
 
 .scrollable-table {
-    max-height: 680px;
+    max-height: 620px;
     overflow-y: auto;
 }
 
@@ -262,7 +262,6 @@ datalist {
 
     width: 400px; 
     height: 200px; 
-    
     align-items: center; 
     justify-content: center;
 }
