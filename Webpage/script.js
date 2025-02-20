@@ -1,20 +1,16 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const container = document.getElementById("champion-grid");
     const searchInput = document.getElementById("champion-search");
-    searchInput.setAttribute("type", "text");
-    searchInput.setAttribute("id", "champion-search");
-    searchInput.setAttribute("placeholder", "Search Champion...");
 
     container.parentNode.insertBefore(searchInput, container);
 
+    const droppableBoxes = document.querySelectorAll(".box.dropeable");
     let championsData = {};
-    let allChampions = [];
 
     async function loadChampions() {
         try {
             const response = await fetch("assets/champions_ids.json");
             championsData = await response.json();
-            allChampions = Object.keys(championsData);
             renderChampions();
         } catch (error) {
             console.error("Error loading champions JSON:", error);
@@ -22,42 +18,32 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function renderChampions(filter = "") {
-        let filteredChampions = allChampions.filter(champion =>
-            champion.toLowerCase().includes(filter.toLowerCase())
-        );
-
-        let minRows = 3;
-        let minCells = minRows * 6;
-        let totalCells = Math.max(minCells, Math.ceil(filteredChampions.length / 6) * 6);
-
-        let html = "<table style='margin: auto; height: 300px;'><tbody>";
+        let html = "<table style='margin: auto;'><tbody>";
         let count = 0;
 
-        for (let i = 0; i < totalCells; i++) {
+        Object.keys(championsData).forEach(champion => {
+            if (filter && !champion.toLowerCase().includes(filter.toLowerCase())) return;
+
             if (count % 6 === 0) html += "<tr>";
 
-            if (i < filteredChampions.length) {
-                const champion = filteredChampions[i];
-                html += `<td style='text-align: center; padding: 15px;'>
-                    <div style="display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; background-image: url('assets/champion_images/${champion}.png');
-                    background-size: cover; background-position: center; border-radius: 30px; cursor: grab; margin: auto;"
-                    draggable='true' data-champion='${champion}'></div>
-                    <span style='display: block; font-size: 14px; font-weight: bold; color: white; margin-top: 5px;'>${champion}</span>
-                </td>`;
-            } else {
-                // Add empty placeholders to maintain height
-                html += `<td style="text-align: center; padding: 15px; opacity: 0;">
-                    <div style="width: 7rem; height: 7rem;"></div>
-                </td>`;
-            }
+            const imgElement = `<td style='text-align: center; padding: 15px;'>
+                <div style="display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; background-image: url('assets/champion_images/${champion}.png');
+                background-size: cover; background-position: center; border-radius: 30px; cursor: grab; margin: auto;"
+                draggable='true' data-champion='${champion}'></div>
+                <span style='display: block; font-size: 14px; font-weight: bold; color: white; margin-top: 5px;'>${champion}</span>
+            </td>`;
 
+            html += imgElement;
             count++;
-            if (count % 6 === 0) html += "</tr>";
-        }
 
+            if (count % 6 === 0) html += "</tr>";
+        });
+
+        if (count % 6 !== 0) html += "</tr>";
         html += "</tbody></table>";
 
         container.innerHTML = html;
+
         addDragAndDropEvents();
     }
 
@@ -65,6 +51,73 @@ document.addEventListener("DOMContentLoaded", async function () {
         document.querySelectorAll("[draggable='true']").forEach(imgElement => {
             imgElement.addEventListener("dragstart", function (event) {
                 event.dataTransfer.setData("text", imgElement.dataset.champion);
+            });
+        });
+
+        droppableBoxes.forEach(box => {
+            box.addEventListener("dragover", function (event) {
+                event.preventDefault();
+            });
+
+            box.addEventListener("drop", function (event) {
+                event.preventDefault();
+                const newChampion = event.dataTransfer.getData("text");
+
+                if (newChampion) {
+                    const previousChampion = box.getAttribute("champion");
+
+                    if (previousChampion) {
+                        const previousChampionElement = document.querySelector(`[data-champion='${previousChampion}']`);
+                        if (previousChampionElement) {
+                            previousChampionElement.setAttribute("draggable", "true");
+                            previousChampionElement.style.cursor = "grab";
+                            previousChampionElement.style.opacity = "1";
+                            previousChampionElement.style.filter = "grayscale(0%)";
+                        }
+                    }
+
+                    box.style.backgroundImage = `url('assets/champion_images/${newChampion}.png')`;
+                    box.setAttribute("champion", newChampion);
+
+                    const newChampionElement = document.querySelector(`[data-champion='${newChampion}']`);
+                    if (newChampionElement) {
+                        newChampionElement.setAttribute("draggable", "false");
+                        newChampionElement.style.cursor = "not-allowed";
+                        newChampionElement.style.opacity = "0.5"; 
+                        newChampionElement.style.filter = "grayscale(100%)";
+                    }
+
+                    if (!box.querySelector(".remove-button")) {
+                        const removeBtn = document.createElement("img");
+                        removeBtn.src = "assets/imgs/x.png";
+                        removeBtn.classList.add("remove-button");
+                        removeBtn.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+                        removeBtn.style.position = "absolute";
+                        removeBtn.style.top = "5px";
+                        removeBtn.style.right = "5px";
+                        removeBtn.style.width = "25px";
+                        removeBtn.style.height = "25px";
+                        removeBtn.style.cursor = "pointer";
+                        removeBtn.style.borderRadius = "50%";
+                        removeBtn.style.padding = "3px";
+
+                        removeBtn.addEventListener("click", function () {
+                            box.removeAttribute("champion");
+                            box.style.backgroundImage = "url(assets/champion_images/-1.png)";
+                            removeBtn.remove();
+
+                            if (newChampionElement) {
+                                newChampionElement.setAttribute("draggable", "true");
+                                newChampionElement.style.cursor = "grab";
+                                newChampionElement.style.opacity = "1";
+                                newChampionElement.style.filter = "grayscale(0%)";
+                            }
+                        });
+
+                        box.style.position = "relative";
+                        box.appendChild(removeBtn);
+                    }
+                }
             });
         });
     }
@@ -75,8 +128,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     loadChampions();
 });
-
-
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -157,15 +208,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 });
-document.getElementById("predict-button").addEventListener("click", function() {
-    processPrediction();
+document.getElementById("predict-button").addEventListener("click", function () {
+    processPrediction(false);
 });
 
-document.getElementById("predict-draft-button").addEventListener("click", function() {
-    processPrediction();
+document.getElementById("predict-draft-button").addEventListener("click", function () {
+    processPrediction(true); 
 });
 
-function processPrediction() {
+function processPrediction(isDraft) {
     const winnerOverlay = document.getElementById("winner-overlay");
     const container = document.getElementById("champion-grid");
 
@@ -186,10 +237,10 @@ function processPrediction() {
         championName = championName ? championName[1] : "Unknown";
 
         if (slot >= 1 && slot <= 5) {
-            bluePlayers.push(input.value);
+            bluePlayers.push(isDraft ? "" : input.value);
             blueChampions.push(championName);
         } else {
-            redPlayers.push(input.value);
+            redPlayers.push(isDraft ? "" : input.value);
             redChampions.push(championName);
         }
     });
@@ -233,6 +284,7 @@ function processPrediction() {
 
 
 
+
 document.addEventListener("DOMContentLoaded", function () {
     const predictButton = document.getElementById("predict-button");
     const predictDraftButton = document.getElementById("predict-draft-button");
@@ -244,13 +296,24 @@ document.addEventListener("DOMContentLoaded", function () {
         let allInputsFilled = Array.from(inputs).every(input => input.value.trim() !== "");
         let allBoxesHaveChampion = Array.from(boxes).every(box => box.hasAttribute("champion"));
 
+        
+
         if (allInputsFilled && allBoxesHaveChampion) {
             predictButton.disabled = false;
             predictButton.classList.add("enabled");
 
             predictDraftButton.disabled = false;
             predictDraftButton.classList.add("enabled");
-        } else {
+        } 
+        else if (allBoxesHaveChampion) {
+            predictButton.disabled = true;
+            predictButton.classList.remove("enabled");
+
+            predictDraftButton.disabled = false;
+            predictDraftButton.classList.add("enabled");
+            
+        }
+        else {
             predictButton.disabled = true;
             predictButton.classList.remove("enabled");
 

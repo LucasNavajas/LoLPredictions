@@ -83,7 +83,7 @@ if __name__ == "__main__":
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "poppy,xin zhao,azir,ezreal,leona"
+    champions2 = "poppy,xin zhao,mel,ezreal,leona"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
