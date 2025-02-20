@@ -33,7 +33,7 @@ def model_wrapper(x):
     return binary_output
 
 
-train_dataset, test_dataset, val_dataset = load_and_preprocess_data('data/datasheetv3.csv')
+train_dataset, test_dataset, val_dataset = load_and_preprocess_data('data/datasheet.csv')
 
 
 train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
@@ -41,7 +41,7 @@ valid_loader = DataLoader(val_dataset, batch_size=256, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
 
-num_champions = 170  
+num_champions = 171
 embedding_dim = 10 
 output_dim = 1  
 

@@ -54,7 +54,7 @@ def calculate_average(player_ids, player_glicko_ratings, player_RD):
     return ratings_sum / num_players, RD_sum / num_players 
 
 if __name__ == "__main__":
-    num_champions = 170
+    num_champions = 171
     embedding_dim = 10
     output_dim = 1 
 
