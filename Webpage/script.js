@@ -18,34 +18,48 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function renderChampions(filter = "") {
-        let html = "<table style='margin: auto;'><tbody>";
-        let count = 0;
+    let html = `<div style="height: 620px; overflow: auto; display: flex; justify-content: center;">
+                    <table style="margin: auto; height: 100%;"><tbody>`;
 
-        Object.keys(championsData).forEach(champion => {
-            if (filter && !champion.toLowerCase().includes(filter.toLowerCase())) return;
+    let count = 0;
+    let filteredChampions = Object.keys(championsData).filter(champion =>
+        !filter || champion.toLowerCase().includes(filter.toLowerCase())
+    );
 
-            if (count % 6 === 0) html += "<tr>";
+    const minColumns = 6;
+    const minRows = 3; 
+    const minElements = minColumns * minRows;
 
-            const imgElement = `<td style='text-align: center; padding: 15px;'>
+    // Ensure minimum elements are always present
+    if (filteredChampions.length < minElements) {
+        while (filteredChampions.length < minElements) {
+            filteredChampions.push(null); // Placeholder elements
+        }
+    }
+
+    filteredChampions.forEach((champion, index) => {
+        if (index % minColumns === 0) html += "<tr>";
+
+        if (champion) {
+            html += `<td style="text-align: center; padding: 15px;">
                 <div style="display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; background-image: url('assets/champion_images/${champion}.png');
                 background-size: cover; background-position: center; border-radius: 30px; cursor: grab; margin: auto;"
-                draggable='true' data-champion='${champion}'></div>
-                <span style='display: block; font-size: 14px; font-weight: bold; color: white; margin-top: 5px;'>${champion}</span>
+                draggable="true" data-champion="${champion}"></div>
+                <span style="display: block; font-size: 14px; font-weight: bold; color: white; margin-top: 5px;">${champion}</span>
             </td>`;
+        } else {
+            html += "<td style='text-align: center; padding: 15px;'></td>"; // Empty cell placeholder
+        }
 
-            html += imgElement;
-            count++;
+        if ((index + 1) % minColumns === 0) html += "</tr>";
+    });
 
-            if (count % 6 === 0) html += "</tr>";
-        });
+    html += "</tbody></table></div>";
 
-        if (count % 6 !== 0) html += "</tr>";
-        html += "</tbody></table>";
+    container.innerHTML = html;
+    addDragAndDropEvents();
+}
 
-        container.innerHTML = html;
-
-        addDragAndDropEvents();
-    }
 
     function addDragAndDropEvents() {
         document.querySelectorAll("[draggable='true']").forEach(imgElement => {
