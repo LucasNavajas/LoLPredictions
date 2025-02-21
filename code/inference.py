@@ -6,7 +6,7 @@ from models.match_predictor_model import MatchPredictor
 from joblib import load
 
 def model_fn(model_dir):
-    num_champions = 169
+    num_champions = 171
     embedding_dim = 10
     output_dim = 1 
     model = MatchPredictor(output_dim, num_champions, embedding_dim)
