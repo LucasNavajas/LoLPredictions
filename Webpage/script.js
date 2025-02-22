@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             } else {
                 this.style.border = "2px solid white";
                 errorMessage.style.visibility = "hidden"
-                dataList.remove();
+                dataList.innerHTML = ""
                 moveToNextInput(index);
                 
             }
@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         input.addEventListener("keydown", function (event) {
             if (event.key === "Enter") {
                 event.preventDefault();
-                dataList.remove();
+                dataList.innerHTML = ""
                 moveToNextInput(index);
             }
         });
@@ -286,10 +286,10 @@ function processPrediction(isDraft) {
         winnerOverlay.style.display = "flex";
         winnerOverlay.style.flexDirection = "column";
 
-        const prediction = data.prediction;
+        const prediction = data.body.prediction;
         const chanceText = document.querySelector("#winner-overlay .chance-text");
         const winnerText = document.querySelector("#winner-overlay div:nth-child(2)");
-
+        console.log("prediction: ", prediction);
         if (prediction < 0.5) {
             winnerText.textContent = "Blue Team Wins";
             chanceText.textContent = `${((1 - prediction) * 100).toFixed(2)}% chance`;

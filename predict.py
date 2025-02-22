@@ -71,11 +71,11 @@ if __name__ == "__main__":
     player_glicko_ratings = glicko_ratings['player_glicko']
     player_RD = glicko_ratings["player_RD"]
 
-    players1 = "oscarinin,razork,humanoid,upset,mikyx"
+    players1 = ",,,,"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "canna,yike,vladi,caliste,targamas"
+    players2 = ",,,,"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
