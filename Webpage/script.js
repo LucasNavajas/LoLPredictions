@@ -1,3 +1,4 @@
+import { API_URL } from './config.js';
 document.addEventListener("DOMContentLoaded", async function () {
     const container = document.getElementById("champion-grid");
     const searchInput = document.getElementById("champion-search");
@@ -30,10 +31,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     const minRows = 3; 
     const minElements = minColumns * minRows;
 
-    // Ensure minimum elements are always present
+
     if (filteredChampions.length < minElements) {
         while (filteredChampions.length < minElements) {
-            filteredChampions.push(null); // Placeholder elements
+            filteredChampions.push(null); 
         }
     }
 
@@ -231,11 +232,13 @@ document.getElementById("predict-draft-button").addEventListener("click", functi
 });
 
 function processPrediction(isDraft) {
+    
     const winnerOverlay = document.getElementById("winner-overlay");
     const container = document.getElementById("champion-grid");
-
-    winnerOverlay.style.display = "flex";
-    winnerOverlay.style.flexDirection = "column";
+    const loadingImage = document.getElementById("loading-image");
+    
+    loadingImage.style.display = "block";
+    winnerOverlay.style.display = "none";
     container.style.visibility = "hidden";
 
     let bluePlayers = [];
@@ -268,7 +271,7 @@ function processPrediction(isDraft) {
 
     console.log("Sending Request Data:", JSON.stringify(requestData, null, 2));
 
-    fetch("https://r3zwjykyn7.execute-api.us-east-2.amazonaws.com/LolPredictions", {
+    fetch(API_URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -278,6 +281,10 @@ function processPrediction(isDraft) {
     .then(response => response.json())
     .then(data => {
         console.log("API Response:", data);
+
+        loadingImage.style.display = "none";
+        winnerOverlay.style.display = "flex";
+        winnerOverlay.style.flexDirection = "column";
 
         const prediction = data.prediction;
         const chanceText = document.querySelector("#winner-overlay .chance-text");
@@ -293,8 +300,11 @@ function processPrediction(isDraft) {
     })
     .catch(error => {
         console.error("Error calling API:", error);
+        loadingImage.style.display = "none";
+        container.style.visibility = "visible";
     });
 }
+
 
 
 
