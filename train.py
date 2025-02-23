@@ -53,7 +53,7 @@ optimizer = Adam(model.parameters(), lr=0.0001)
 device = torch.device('cpu')
 model.to(device)
 
-num_epochs = 120 
+num_epochs = 120
 
 train_accuracies = []
 val_accuracies = []

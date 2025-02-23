@@ -4,6 +4,7 @@ import pandas as pd
 from models.match_predictor_model import MatchPredictor
 from joblib import load
 import torch.nn.functional as F
+import sympy as sp
 
 def load_ids_from_json(filepath):
     with open(filepath, 'r', encoding='utf-8') as file:
@@ -53,6 +54,31 @@ def calculate_average(player_ids, player_glicko_ratings, player_RD):
         return 0, 0
     return ratings_sum / num_players, RD_sum / num_players 
 
+def calculate_composition_winrates(original_prob, swapped_prob):
+    W_C_R, W_C_B = sp.symbols('W_C_R W_C_B')
+    
+    ratio_1 = swapped_prob / original_prob 
+    
+    eq1 = W_C_R + W_C_B - 1  
+    
+    eq2 = W_C_B - ratio_1 * W_C_R  
+    
+    solution = sp.solve((eq1, eq2), (W_C_R, W_C_B))
+    
+    return solution[W_C_R], solution[W_C_B]
+
+def calculate_confidence(probability):
+    """
+    Calculates the level of confidence for the original probability.
+    
+    - Numbers < 0.5 indicate a Blue Team win, where closer to 0 means higher confidence.
+    - Numbers >= 0.5 indicate a Red Team win, where closer to 1 means higher confidence.
+    
+    Confidence is measured as the absolute distance from 0.5, scaled to a percentage.
+    """
+    confidence = abs(probability - 0.5) * 2 * 100 
+    return confidence
+
 if __name__ == "__main__":
     num_champions = 171
     embedding_dim = 10
@@ -71,19 +97,19 @@ if __name__ == "__main__":
     player_glicko_ratings = glicko_ratings['player_glicko']
     player_RD = glicko_ratings["player_RD"]
 
-    players1 = ",,,,"
+    players1 = "sniper,river,quid,fbi,eyla"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = ",,,,"
+    players2 = "bwipo,inspired,quad,massu,busio"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "ambessa,vi,aurora,kaisa,rakan"
+    champions1 = "jayce,sejuani,sylas,corki,rell"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "poppy,xin zhao,mel,ezreal,leona"
+    champions2 = "ksante,vi,azir,varus,braum"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
@@ -111,27 +137,10 @@ if __name__ == "__main__":
 
     # Predict the outcome with swapped team compositions
     swapped_probability = predict_probabilities(model, device, swapped_features)
-    predicted_outcome_swapped = "Blue Team Wins" if swapped_probability <= 0.5 else "Red Team Wins"
 
-    if predicted_outcome_original == "Blue Team Wins":
-        probability_difference = swapped_probability - original_probability
-    else:
-        probability_difference = original_probability - swapped_probability
-
-    print(f"MODEL: {model_path}")
-    # Determine if the winner is "safe"
-    if predicted_outcome_original == "Blue Team Wins":
-        if original_probability < swapped_probability or (original_probability < 0.5 and swapped_probability > 0.5):
-            print(f"Predicted outcome: {predicted_outcome_original} (safe)")
-        else:
-            print(f"Predicted outcome: {predicted_outcome_original} (not safe)")
-    else: 
-        if original_probability > swapped_probability or (original_probability > 0.5 and swapped_probability < 0.5):
-            print(f"Predicted outcome: {predicted_outcome_original} (safe)")
-        else:
-            print(f"Predicted outcome: {predicted_outcome_original} (not safe)")
-            
-    print(f"Original probability: {original_probability}")
-    print(f"Swapped probability: {swapped_probability}")
-
-    print(f"Difference between original and swapped probabilities: {probability_difference:.4f}")
+    winrate_C_R, winrate_C_B = calculate_composition_winrates(original_probability, swapped_probability)
+    confidence_original = calculate_confidence(original_probability)
+    print(f"Predicted outcome: {predicted_outcome_original}" )
+    print(f"Confidence Level for Original Probability: {confidence_original:.2f}%")
+    print(f"Win rate of Composition C_R: {winrate_C_R:.4%}")
+    print(f"Win rate of Composition C_B: {winrate_C_B:.4%}")
