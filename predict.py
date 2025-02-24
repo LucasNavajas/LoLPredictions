@@ -57,10 +57,12 @@ def calculate_average(player_ids, player_glicko_ratings, player_RD):
 def calculate_composition_winrates(original_prob, swapped_prob):
     W_C_R, W_C_B = sp.symbols('W_C_R W_C_B')
     
-    ratio_1 = swapped_prob / original_prob 
+    if original_prob > 0.5:
+        ratio_1 = swapped_prob / original_prob
+    else:
+        ratio_1 = (1 - swapped_prob) / (1 - original_prob)
     
     eq1 = W_C_R + W_C_B - 1  
-    
     eq2 = W_C_B - ratio_1 * W_C_R  
     
     solution = sp.solve((eq1, eq2), (W_C_R, W_C_B))
@@ -76,7 +78,7 @@ def calculate_confidence(probability):
     
     Confidence is measured as the absolute distance from 0.5, scaled to a percentage.
     """
-    confidence = abs(probability - 0.5) * 2 * 100 
+    confidence = max(probability, 1 - probability) * 100
     return confidence
 
 if __name__ == "__main__":
@@ -140,6 +142,8 @@ if __name__ == "__main__":
 
     winrate_C_R, winrate_C_B = calculate_composition_winrates(original_probability, swapped_probability)
     confidence_original = calculate_confidence(original_probability)
+    print(original_probability)
+    print(swapped_probability)
     print(f"Predicted outcome: {predicted_outcome_original}" )
     print(f"Confidence Level for Original Probability: {confidence_original:.2f}%")
     print(f"Win rate of Composition C_R: {winrate_C_R:.4%}")
