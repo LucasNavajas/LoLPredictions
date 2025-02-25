@@ -99,19 +99,19 @@ if __name__ == "__main__":
     player_glicko_ratings = glicko_ratings['player_glicko']
     player_RD = glicko_ratings["player_RD"]
 
-    players1 = "sniper,river,quid,fbi,eyla"
+    players1 = "irrelevant,113,nuc,ice,parus"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "bwipo,inspired,quad,massu,busio"
+    players2 = "oscarinin,razork,humanoid,upset,mikyx"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "jayce,sejuani,sylas,corki,rell"
+    champions1 = "ornn,nidalee,jayce,zeri,rell"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "ksante,vi,azir,varus,braum"
+    champions2 = "rumble,sejuani,yone,kaisa,galio"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 

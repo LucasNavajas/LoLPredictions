@@ -231,7 +231,7 @@ document.getElementById("predict-draft-button").addEventListener("click", functi
     processPrediction(true); 
 });
 
-function processPrediction(isDraft) {
+async function processPrediction(isDraft) {
     
     const winnerOverlay = document.getElementById("winner-overlay");
     const container = document.getElementById("champion-grid");
@@ -254,10 +254,10 @@ function processPrediction(isDraft) {
         championName = championName ? championName[1] : "Unknown";
 
         if (slot >= 1 && slot <= 5) {
-            bluePlayers.push(isDraft ? "" : input.value);
+            bluePlayers.push(input.value);
             blueChampions.push(championName);
         } else {
-            redPlayers.push(isDraft ? "" : input.value);
+            redPlayers.push(input.value);
             redChampions.push(championName);
         }
     });
@@ -271,43 +271,98 @@ function processPrediction(isDraft) {
 
     console.log("Sending Request Data:", JSON.stringify(requestData, null, 2));
 
-    fetch(API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(requestData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("API Response:", data);
+    try {
+        const originalResponse = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestData)
+        });
 
-        loadingImage.style.display = "none";
-        winnerOverlay.style.display = "flex";
-        winnerOverlay.style.flexDirection = "column";
+        const originalData = await originalResponse.json();
+        let originalProb = originalData.body.prediction;
+        console.log("Original Prediction:", originalProb);
 
-        const prediction = data.body.prediction;
-        const chanceText = document.querySelector("#winner-overlay .chance-text");
-        const winnerText = document.querySelector("#winner-overlay div:nth-child(2)");
-        console.log("prediction: ", prediction);
-        if (prediction < 0.5) {
-            winnerText.textContent = "Blue Team Wins";
-            chanceText.textContent = `${((1 - prediction) * 100).toFixed(2)}% chance`;
+        if (isDraft) {
+            let swappedRequestData = {
+                players1: bluePlayers,
+                players2: redPlayers,
+                champions1: redChampions,
+                champions2: blueChampions
+            };
+
+            console.log("Sending Swapped Request Data:", JSON.stringify(swappedRequestData, null, 2));
+
+            const swappedResponse = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(swappedRequestData)
+            });
+
+            const swappedData = await swappedResponse.json();
+            let swappedProb = swappedData.body.prediction;
+            console.log("Swapped Prediction:", swappedProb);
+
+            let { W_C_R, W_C_B } = calculateCompositionWinrates(originalProb, swappedProb);
+            let finalWinner;
+            if (originalProb < 0.5) {
+                if (swappedProb > originalProb) {
+                    finalWinner = "Blue Team Wins";
+                }
+                else {
+                    finalWinner = "Red Team Wins"
+                }
+            }
+            else {
+                if (swappedProb < originalProb) {
+                    finalWinner = "Red Team Wins";
+                }
+                else {
+                    finalWinner = "Blue Team Wins"
+                }
+            }
+            let finalChance = (Math.max(W_C_R, W_C_B) * 100).toFixed(2) + "% chance";
+
+            displayPrediction(finalWinner, finalChance);
         } else {
-            winnerText.textContent = "Red Team Wins";
-            chanceText.textContent = `${(prediction * 100).toFixed(2)}% chance`;
+            let finalWinner = originalProb < 0.5 ? "Blue Team Wins" : "Red Team Wins";
+            let finalChance = ((originalProb < 0.5 ? 1 - originalProb : originalProb) * 100).toFixed(2) + "% chance";
+            displayPrediction(finalWinner, finalChance);
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error("Error calling API:", error);
         loadingImage.style.display = "none";
         container.style.visibility = "visible";
-    });
+    }
+
+
 }
 
+function calculateCompositionWinrates(originalProb, swappedProb) {
+    let ratio1; 
+    if (originalProb > 0.5) {
+        ratio1 = swappedProb / originalProb
+    }
+    else {
+        ratio1 = (1 - swappedProb) / (1 - originalProb);
+    }
 
+    let W_C_R = 1 / (1 + ratio1);
+    let W_C_B = ratio1 * W_C_R;
 
+    return { W_C_R, W_C_B };
+}
 
+function displayPrediction(winnerText, chanceText) {
+    const winnerOverlay = document.getElementById("winner-overlay");
+    const loadingImage = document.getElementById("loading-image");
+
+    loadingImage.style.display = "none";
+    winnerOverlay.style.display = "flex";
+    winnerOverlay.style.flexDirection = "column";
+
+    document.querySelector("#winner-overlay div:nth-child(2)").textContent = winnerText;
+    document.querySelector("#winner-overlay .chance-text").textContent = chanceText;
+}
 
 document.addEventListener("DOMContentLoaded", function () {
     const predictButton = document.getElementById("predict-button");
@@ -320,8 +375,6 @@ document.addEventListener("DOMContentLoaded", function () {
         let allInputsFilled = Array.from(inputs).every(input => input.value.trim() !== "");
         let allBoxesHaveChampion = Array.from(boxes).every(box => box.hasAttribute("champion"));
 
-        
-
         if (allInputsFilled && allBoxesHaveChampion) {
             predictButton.disabled = false;
             predictButton.classList.add("enabled");
@@ -329,14 +382,6 @@ document.addEventListener("DOMContentLoaded", function () {
             predictDraftButton.disabled = false;
             predictDraftButton.classList.add("enabled");
         } 
-        else if (allBoxesHaveChampion) {
-            predictButton.disabled = true;
-            predictButton.classList.remove("enabled");
-
-            predictDraftButton.disabled = false;
-            predictDraftButton.classList.add("enabled");
-            
-        }
         else {
             predictButton.disabled = true;
             predictButton.classList.remove("enabled");
