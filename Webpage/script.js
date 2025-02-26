@@ -436,3 +436,92 @@ document.getElementById('reset-champions').addEventListener('click', () => {
         box.removeAttribute("champion");
     });
 });
+
+document.getElementById('reset-players').addEventListener('click', function() {
+    document.querySelectorAll('.box-label').forEach(input => {
+        input.value = '';
+    });
+});
+
+document.getElementById('swap-players').addEventListener('click', function() {
+    for (let i = 1; i <= 5; i++) {
+        let blueInput = document.querySelector(`.box-label[data-slot="${i}"]`);
+        let redInput = document.querySelector(`.box-label[data-slot="${i + 5}"]`);
+
+        let temp = blueInput.value;
+        blueInput.value = redInput.value;
+        redInput.value = temp;
+    }
+});
+
+document.getElementById('swap-champions').addEventListener('click', function() {
+    for (let i = 1; i <= 5; i++) {
+        let blueBox = document.querySelector(`.box.dropeable[data-slot="${i}"]`);
+        let redBox = document.querySelector(`.box.dropeable[data-slot="${i + 5}"]`);
+
+        if (blueBox && redBox) {
+            let tempBackground = blueBox.style.backgroundImage;
+            blueBox.style.backgroundImage = redBox.style.backgroundImage;
+            redBox.style.backgroundImage = tempBackground;
+
+            let tempChampion = blueBox.getAttribute("champion");
+            blueBox.setAttribute("champion", redBox.getAttribute("champion"));
+            redBox.setAttribute("champion", tempChampion);
+
+            let blueRemoveBtn = blueBox.querySelector(".remove-button");
+            let redRemoveBtn = redBox.querySelector(".remove-button");
+
+            if (blueRemoveBtn) {
+                blueBox.removeChild(blueRemoveBtn);
+            }
+            if (redRemoveBtn) {
+                redBox.removeChild(redRemoveBtn);
+            }
+
+            if (blueBox.getAttribute("champion") && blueBox.getAttribute("champion") !== "null") {
+                addRemoveButton(blueBox);
+            }
+            if (redBox.getAttribute("champion") && redBox.getAttribute("champion") !== "null") {
+                addRemoveButton(redBox);
+            }
+        }
+    }
+});
+
+
+function addRemoveButton(box) {
+    if (!box.getAttribute("champion") || box.getAttribute("champion") === "null") {
+        return;
+    }
+
+    const removeBtn = document.createElement("img");
+    removeBtn.src = "assets/imgs/x.png";
+    removeBtn.classList.add("remove-button");
+    removeBtn.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+    removeBtn.style.position = "absolute";
+    removeBtn.style.top = "5px";
+    removeBtn.style.right = "5px";
+    removeBtn.style.width = "25px";
+    removeBtn.style.height = "25px";
+    removeBtn.style.cursor = "pointer";
+    removeBtn.style.borderRadius = "50%";
+    removeBtn.style.padding = "3px";
+
+    removeBtn.addEventListener("click", function () {
+        let championName = box.getAttribute("champion");
+        box.removeAttribute("champion");
+        box.style.backgroundImage = "url(assets/champion_images/-1.png)";
+        removeBtn.remove();
+
+        let championElement = document.querySelector(`[data-champion='${championName}']`);
+        if (championElement) {
+            championElement.setAttribute("draggable", "true");
+            championElement.style.cursor = "grab";
+            championElement.style.opacity = "1";
+            championElement.style.filter = "grayscale(0%)";
+        }
+    });
+
+    box.style.position = "relative";
+    box.appendChild(removeBtn);
+}

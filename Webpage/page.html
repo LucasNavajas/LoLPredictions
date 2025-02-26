@@ -118,68 +118,6 @@
             <button id="predict-button" disabled tabindex="-1"><span>Predict Winner</span></button> 
             <button id="predict-draft-button" disabled tabindex="-1"><span>Predict Draft</span></button>
         </div>
-    </div>
-
-    <!-- <h1>SageMaker Endpoint Interaction</h1>
-    <form id="endpointForm">
-        <label for="players1">Players 1 (comma-separated):</label>
-        <input type="text" id="players1" name="players1" required>
-
-        <label for="players2">Players 2 (comma-separated):</label>
-        <input type="text" id="players2" name="players2" required>
-
-        <label for="champions1">Champions 1 (comma-separated):</label>
-        <input type="text" id="champions1" name="champions1" required>
-
-        <label for="champions2">Champions 2 (comma-separated):</label>
-        <input type="text" id="champions2" name="champions2" required>
-
-        <input type="submit" value="Submit">
-    </form>
-
-    <p id="result"></p>
-
-    <script>
-        import { API_URL } from "./config.js";
-        document.getElementById('endpointForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-
-            const players1 = document.getElementById('players1').value.split(',').map(item => item.trim());
-            const players2 = document.getElementById('players2').value.split(',').map(item => item.trim());
-            const champions1 = document.getElementById('champions1').value.split(',').map(item => item.trim());
-            const champions2 = document.getElementById('champions2').value.split(',').map(item => item.trim());
-
-            // Adjust the URL to point to your SageMaker endpoint
-
-            // Create the request payload
-            const payload = JSON.stringify({
-                players1: players1,
-                players2: players2,
-                champions1: champions1,
-                champions2: champions2
-            });
-
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: payload
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                document.getElementById('result').innerText = JSON.stringify(result, null, 2);
-            } catch (error) {
-                document.getElementById('result').innerText = `Error: ${error.message}`;
-            }
-        });
-    </script>
--->
-    
+    </div> 
 </body>
 </html>
