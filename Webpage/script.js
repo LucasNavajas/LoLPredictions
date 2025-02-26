@@ -412,3 +412,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
     closeOverlay.addEventListener("click", closeWinnerOverlay);
 });
+
+document.getElementById('reset-champions').addEventListener('click', () => {
+    document.querySelectorAll('.box').forEach(box => {
+        box.style.backgroundImage = "url('assets/champion_images/-1.png')";
+
+        let removeBtn = box.querySelector('.remove-button'); 
+        if (removeBtn) {
+            removeBtn.remove();
+        }
+
+        const previousChampion = box.getAttribute("champion");
+
+        if (previousChampion) {
+            const previousChampionElement = document.querySelector(`[data-champion='${previousChampion}']`);
+            if (previousChampionElement) {
+                previousChampionElement.setAttribute("draggable", "true");
+                previousChampionElement.style.cursor = "grab";
+                previousChampionElement.style.opacity = "1";
+                previousChampionElement.style.filter = "grayscale(0%)";
+            }
+        }
+        box.removeAttribute("champion");
+    });
+});
