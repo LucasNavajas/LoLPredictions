@@ -181,6 +181,30 @@ datalist {
     margin-top: 10px;
 }
 
+.swap-button {
+    background-color: black;
+    background-image: url('assets/imgs/happ_shroud.png');
+    background-size: cover;
+    background-position: center;
+    color: gray;
+    font-family: 'BeaufortforLOL', sans-serif; 
+    font-size: 18px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 1px solid gray;
+    margin-right: 20px;
+    width: 250px; 
+    height: 62.5px; 
+    cursor: pointer;
+    transition: opacity 0.3s ease-in-out; 
+    position: relative;
+}
+
+.swap-button:hover{
+    color: white;
+    border: 1px solid white;
+}
+
 #predict-button, #predict-draft-button {
     background-color: transparent;
     background-image: url('assets/imgs/button-accept-disabled.png');
