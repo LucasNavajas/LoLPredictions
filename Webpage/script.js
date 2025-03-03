@@ -19,47 +19,56 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function renderChampions(filter = "") {
-    let html = `<div style="height: 620px; overflow: auto; display: flex; justify-content: center;">
-                    <table style="margin: auto; height: 100%;"><tbody>`;
-
-    let count = 0;
-    let filteredChampions = Object.keys(championsData).filter(champion =>
-        !filter || champion.toLowerCase().includes(filter.toLowerCase())
-    );
-
-    const minColumns = 6;
-    const minRows = 3; 
-    const minElements = minColumns * minRows;
-
-
-    if (filteredChampions.length < minElements) {
-        while (filteredChampions.length < minElements) {
-            filteredChampions.push(null); 
+        let selectedChampions = new Set();
+        droppableBoxes.forEach(box => {
+            const champion = box.getAttribute("champion");
+            if (champion) selectedChampions.add(champion);
+        });
+    
+        let html = `<div style="height: 620px; overflow: auto; display: flex; justify-content: center;">
+                        <table style="margin: auto; height: 100%;"><tbody>`;
+    
+        let count = 0;
+        let filteredChampions = Object.keys(championsData).filter(champion =>
+            !filter || champion.toLowerCase().includes(filter.toLowerCase()) // Keep all champions visible
+        );
+    
+        const minColumns = 6;
+        const minRows = 3;
+        const minElements = minColumns * minRows;
+    
+        if (filteredChampions.length < minElements) {
+            while (filteredChampions.length < minElements) {
+                filteredChampions.push(null);
+            }
         }
+    
+        filteredChampions.forEach((champion, index) => {
+            if (index % minColumns === 0) html += "<tr>";
+    
+            if (champion) {
+                const isDisabled = selectedChampions.has(champion);
+                html += `<td style="text-align: center; padding: 15px;">
+                    <div style="display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; background-image: url('assets/champion_images/${champion}.png');
+                    background-size: cover; background-position: center; border-radius: 30px; cursor: ${isDisabled ? "not-allowed" : "grab"}; 
+                    margin: auto; opacity: ${isDisabled ? "0.5" : "1"}; filter: ${isDisabled ? "grayscale(100%)" : "grayscale(0%)"};"
+                    draggable="${isDisabled ? "false" : "true"}" data-champion="${champion}"></div>
+                    <span style="display: block; font-size: 14px; font-weight: bold; color: white; margin-top: 5px;">${champion}</span>
+                </td>`;
+            } else {
+                html += "<td style='text-align: center; padding: 15px;'></td>"; // Empty cell placeholder
+            }
+    
+            if ((index + 1) % minColumns === 0) html += "</tr>";
+        });
+    
+        html += "</tbody></table></div>";
+    
+        container.innerHTML = html;
+        addDragAndDropEvents();
     }
-
-    filteredChampions.forEach((champion, index) => {
-        if (index % minColumns === 0) html += "<tr>";
-
-        if (champion) {
-            html += `<td style="text-align: center; padding: 15px;">
-                <div style="display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; background-image: url('assets/champion_images/${champion}.png');
-                background-size: cover; background-position: center; border-radius: 30px; cursor: grab; margin: auto;"
-                draggable="true" data-champion="${champion}"></div>
-                <span style="display: block; font-size: 14px; font-weight: bold; color: white; margin-top: 5px;">${champion}</span>
-            </td>`;
-        } else {
-            html += "<td style='text-align: center; padding: 15px;'></td>"; // Empty cell placeholder
-        }
-
-        if ((index + 1) % minColumns === 0) html += "</tr>";
-    });
-
-    html += "</tbody></table></div>";
-
-    container.innerHTML = html;
-    addDragAndDropEvents();
-}
+    
+    
 
 
     function addDragAndDropEvents() {

@@ -33,6 +33,8 @@ def predict_probabilities(model, device, all_features):
 
 def get_id(name, ids):
     normalized_name = name.lower()
+    if not ids.get(normalized_name):
+        raise ValueError(f"{normalized_name} does not exist")
     return ids.get(normalized_name, f"{name} not found")
 
 
@@ -50,8 +52,7 @@ def calculate_average(player_ids, player_glicko_ratings, player_RD):
             ratings_sum += player_glicko_ratings[str(player_id)]
             RD_sum += player_RD[str(player_id)]
             num_players += 1
-    if num_players == 0:
-        return 0, 0
+            
     return ratings_sum / num_players, RD_sum / num_players 
 
 def calculate_composition_winrates(original_prob, swapped_prob):
@@ -99,19 +100,19 @@ if __name__ == "__main__":
     player_glicko_ratings = glicko_ratings['player_glicko']
     player_RD = glicko_ratings["player_RD"]
 
-    players1 = "irrelevant,113,nuc,ice,parus"
+    players1 = "haetae,vincenzo,poby,guti,cloud"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "naak nako,lyncas,czajek,carzzy,hylissang"
+    players2 = "casting,youngjae,zinie,paduck,peter"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "rumble,maokai,jayce,sivir,blitzcrank"
+    champions1 = "renekton,pantheon,azir,varus,braum"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "gnar,ivern,mel,kaisa,nautilus"
+    champions2 = "aatrox,viego,aurora,ashe,leona"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
@@ -146,5 +147,5 @@ if __name__ == "__main__":
     print(swapped_probability)
     print(f"Predicted outcome: {predicted_outcome_original}" )
     print(f"Confidence Level for Original Probability: {confidence_original:.2f}%")
-    print(f"Win rate of Composition C_R: {winrate_C_R:.4%}")
-    print(f"Win rate of Composition C_B: {winrate_C_B:.4%}")
+    print(f"Win rate of Composition C_R: {winrate_C_R:.2%}")
+    print(f"Win rate of Composition C_B: {winrate_C_B:.2%}")

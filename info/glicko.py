@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import json
 
-df = pd.read_csv('data/datasheetv3.csv')
+df = pd.read_csv('data/datasheet.csv')
 
 def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=64, RD_reduction_factor=0.97, q=np.log(10)/400):
     def g_RD(RD):
