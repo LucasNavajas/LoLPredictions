@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.nn import BCEWithLogitsLoss
 from utils.data_preprocessing import load_and_preprocess_data
-from models.match_predictor_model import MatchPredictor
+from match_predictor_model import MatchPredictor
 import matplotlib.pyplot as plt
 import random
 
