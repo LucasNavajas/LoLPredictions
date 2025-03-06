@@ -6,15 +6,15 @@
     <title>SageMaker Endpoint Interaction</title>
     <link rel="stylesheet" href="style.css">
     <script type="module" src = "script.js"></script>
-    
-
 </head>
 <body>
+    <!-- Blue Side and Red Side bars on top -->
     <div class="side-header-container">
         <div class="blue-side">BLUE SIDE</div>
         <div class="red-side">RED SIDE</div>
     </div>
     
+    <!-- Buttons container to remove/swap champions and players -->
     <div class="controls-container">
         <button class = "swap-button" id="reset-champions">Reset Champions</button>
         <button class = "swap-button" id="reset-players">Reset Players</button>
@@ -22,7 +22,10 @@
         <button class = "swap-button" id="swap-players">Swap Players</button>
     </div>
 
+    <!-- Main container where inputs and champions are placed -->
     <div class="container">
+
+        <!-- Loading image, initially hidden and displayed only waiting for the API response -->
         <img id="loading-image" src="assets/imgs/rp-top-up-nav-loading.png" alt="Loading..." style="display:none;">
         <div id="winner-overlay" class="winner-overlay">
             <img src="assets/imgs/x.png" alt="Close" class="close-btn" id="close-overlay">
@@ -30,10 +33,10 @@
             <div class="chance-text">50% chance</div>
         </div>
         
-        
-        
-        
+        <!-- Inputs section, with player names and champions per player -->
         <div class="draft">
+            
+            <!-- Blue side container -->
             <div class="stacked-boxes-container">
                 <div class="stacked-box">
                     <div>
@@ -71,11 +74,14 @@
                     <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="5"></div>
                 </div>
             </div>
+
+            <!-- All champions table -->
             <div>
                 <input type="text" id="champion-search" placeholder="Search Champion..." style="width: 97%; padding: 10px; margin-bottom: 10px; font-size: 16px;">
                 <div class="scrollable-table" id="champion-grid" tabindex="-1"></div>
             </div>
             
+            <!-- Red side container -->
             <div class="stacked-boxes-container">
                 <div class="stacked-box">
                     <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="6"></div>
@@ -114,6 +120,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Prediction buttons container -->
         <div class = "button-container">
             <button id="predict-button" disabled tabindex="-1"><span>Predict Winner</span></button> 
             <button id="predict-draft-button" disabled tabindex="-1"><span>Predict Draft</span></button>
