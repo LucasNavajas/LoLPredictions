@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
 import json
-
-df = pd.read_csv('data/datasheet.csv')
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+df = pd.read_csv(os.path.join(BASE_DIR,'data/datasheet.csv'))
 
 def glicko_update(R_winner, R_loser, RD_winner, RD_loser, K=64, RD_reduction_factor=0.97, q=np.log(10)/400):
     def g_RD(RD):
@@ -49,7 +50,7 @@ def calculate_player_glicko_ratings(df):
                 player_glicko[winner_id], player_glicko[loser_id] = R_winner_updated, R_loser_updated
                 player_RD[winner_id], player_RD[loser_id] = RD_winner_updated, RD_loser_updated
 
-    with open('player_glicko_ratings.json', 'w') as f:
+    with open(os.path.join(BASE_DIR,'./info/player_glicko_ratings.json'), 'w') as f:
         json.dump({"player_glicko": player_glicko, "player_RD": player_RD}, f, indent=4)
 
     return player_glicko, player_RD

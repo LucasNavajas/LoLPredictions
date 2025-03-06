@@ -5,6 +5,9 @@ from models.match_predictor_model import MatchPredictor
 from joblib import load
 import torch.nn.functional as F
 import sympy as sp
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def load_ids_from_json(filepath):
     with open(filepath, 'r', encoding='utf-8') as file:
@@ -22,7 +25,7 @@ def predict_probabilities(model, device, all_features):
         'Top1Champion', 'Jg1Champion', 'Mid1Champion', 'Adc1Champion', 'Supp1Champion',
         'Top2Champion', 'Jg2Champion', 'Mid2Champion', 'Adc2Champion', 'Supp2Champion'
     ])
-    preprocessor = load('preprocessor.joblib')
+    preprocessor = load(os.path.join(BASE_DIR,'preprocessor.joblib'))
     df_preprocessed = preprocessor.transform(df)
     data_tensor = torch.tensor(df_preprocessed, dtype=torch.float32).to(device)
     model.eval()
@@ -87,16 +90,16 @@ if __name__ == "__main__":
     embedding_dim = 10
     output_dim = 1 
 
-    model_path = 'model2.pth'
+    model_path = os.path.join(BASE_DIR, "model2.pth")
     model = MatchPredictor(output_dim, num_champions, embedding_dim)
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     model.eval()
     device = torch.device('cpu')
     model.to(device)
 
-    players_ids = load_ids_from_json("info/players_ids.json")
-    champions_ids = load_ids_from_json("info/champions_ids.json")
-    glicko_ratings = load_glicko_ratings('info/player_glicko_ratings.json')
+    players_ids = load_ids_from_json(os.path.join(BASE_DIR,"info/players_ids.json"))
+    champions_ids = load_ids_from_json(os.path.join(BASE_DIR,"info/champions_ids.json"))
+    glicko_ratings = load_glicko_ratings(os.path.join(BASE_DIR,'info/player_glicko_ratings.json'))
     player_glicko_ratings = glicko_ratings['player_glicko']
     player_RD = glicko_ratings["player_RD"]
 

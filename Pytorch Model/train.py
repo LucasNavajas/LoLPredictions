@@ -4,10 +4,12 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.nn import BCEWithLogitsLoss
 from utils.data_preprocessing import load_and_preprocess_data
-from match_predictor_model import MatchPredictor
+from models.match_predictor_model import MatchPredictor
 import matplotlib.pyplot as plt
 import random
+import os
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Set random seed for reproducibility
 seed = 0
 torch.manual_seed(seed)
@@ -33,7 +35,7 @@ def model_wrapper(x):
     return binary_output
 
 
-train_dataset, test_dataset, val_dataset = load_and_preprocess_data('data/datasheet.csv')
+train_dataset, test_dataset, val_dataset = load_and_preprocess_data(os.path.join(BASE_DIR,'data/datasheet.csv'))
 
 
 train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
@@ -139,5 +141,5 @@ with torch.no_grad():
 accuracy = test_correct / test_total
 print(f'Model accuracy on the test set: {accuracy * 100:.2f}%')
 
-torch.save(model.state_dict(), 'model.pth')
+torch.save(model.state_dict(), os.path.join(BASE_DIR,'model.pth'))
 print('Training completed.')

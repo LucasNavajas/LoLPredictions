@@ -6,6 +6,9 @@ import torch
 import pandas as pd
 import numpy as np
 from joblib import dump
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class MatchDataset(Dataset):
@@ -104,7 +107,7 @@ def calculate_player_glicko_ratings(df):
 
 
 def load_and_preprocess_data(filepath):
-    df = pd.read_csv(filepath)
+    df = pd.read_csv(os.path.join(BASE_DIR,filepath))
     
     df = calculate_player_glicko_ratings(df)
 
@@ -125,7 +128,7 @@ def load_and_preprocess_data(filepath):
 
     X_processed = preprocessor.fit_transform(X)
 
-    dump(preprocessor, 'preprocessor.joblib')
+    dump(preprocessor, os.path.join(BASE_DIR,'../preprocessor.joblib'))
 
     X_train_val, X_test, y_train_val, y_test = train_test_split(X_processed, y, test_size=0.1, random_state=0)
     X_train, X_val, y_train, y_val = train_test_split(X_train_val, y_train_val, test_size=0.50, random_state=0)
