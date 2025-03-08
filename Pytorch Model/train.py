@@ -141,5 +141,5 @@ with torch.no_grad():
 accuracy = test_correct / test_total
 print(f'Model accuracy on the test set: {accuracy * 100:.2f}%')
 
-torch.save(model.state_dict(), os.path.join(BASE_DIR,'model.pth'))
+torch.save(model.state_dict(), os.path.join(BASE_DIR,'model3.pth'))
 print('Training completed.')

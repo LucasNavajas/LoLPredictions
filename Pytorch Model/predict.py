@@ -90,7 +90,7 @@ if __name__ == "__main__":
     embedding_dim = 10
     output_dim = 1 
 
-    model_path = os.path.join(BASE_DIR, "model2.pth")
+    model_path = os.path.join(BASE_DIR, "model3.pth")
     model = MatchPredictor(output_dim, num_champions, embedding_dim)
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     model.eval()
@@ -103,19 +103,19 @@ if __name__ == "__main__":
     player_glicko_ratings = glicko_ratings['player_glicko']
     player_RD = glicko_ratings["player_RD"]
 
-    players1 = "potent,croniik,xkenzuke,harpoon,leon"
+    players1 = "siwoo,lucid,showmaker,aiming,beryl"
     players1 = players1.split(",")
     players1_ids = [get_id(name, players_ids) for name in players1]
 
-    players2 = "patkicaa,joinze,sayn,shiganari,lekcyc"
+    players2 = "kiin,canyon,chovy,ruler,duro"
     players2 = players2.split(",")
     players2_ids = [get_id(name, players_ids) for name in players2]
 
-    champions1 = "ambessa,vi,azir,varus,rakan"
+    champions1 = "jayce,xin zhao,galio,zeri,rakan"
     champions1 = champions1.split(",")
     champions1_ids = [get_id(name, champions_ids) for name in champions1]
     
-    champions2 = "camille,ivern,aurora,kalista,leona"
+    champions2 = "rumble,vi,sylas,ezreal,alistar"
     champions2 = champions2.split(",")
     champions2_ids = [get_id(name, champions_ids) for name in champions2]
 
