@@ -84,6 +84,44 @@ Below is a diagram illustrating the overall AWS deployment architecture:
 </ul>
 <br>
 <b>Lambda Handler</b> (lambda_handler.py):  This is a function that takes a JSON event, sends it to a specified SageMaker endpoint for inference, and returns the prediction in the response body. The idea is to use this as a bridge between teh REST API and the SageMaker Endpoint.
+<br>
+<h3>Webpage</h3>
+<p>
+  This folder contains the files for a simple static website hosted in an S3 bucket and served by CloudFront. The website interacts with a REST API to display predictions from the predictions model, based on user input.
+</p>
+
+<h4>Main Functionality</h4>
+<p>
+  This webpage provides an interactive interface for League of Legends draft predictions. Users can view all available champions in a scrollable table and filter them with a search bar. Each champion is shown with an image and name for easy identification. The table is automatically populated from <code>champions_ids.json</code>, and any champion already selected for a team becomes disabled to avoid multiple selections of the same champion.
+</p>
+
+<p>
+  To select champions, users drag a champion’s image from the table and drop it into one of ten “boxes”—five for the blue team and five for the red team, ordered based on roles (Top, Jungle, Mid, Adc, Support). A grayed-out effect indicates that the champion is no longer available. Each box includes a remove button, which, when clicked, clears that champion and re-enables it in the table for future selection.
+</p>
+
+<p>
+  Alongside champion picks, there are inputs for player names. These fields provide real-time suggestions and validate entries against a locally fetched <code>players_ids.json</code> file. Any invalid name is highlighted with a red border and an error message, disabling the prediction buttons until it is corrected.
+</p>
+
+<p>
+  Once all ten boxes (champions and player names) are validly filled, users can request a win-probability prediction. Depending on the button clicked—<strong>Predict</strong> or <strong>Predict Draft</strong>—the system either returns a single probability or calculates a comparative probability by swapping champion compositions between teams. The result displays the favored team and includes the percentage chance of winning.
+</p>
+
+<p>
+  To streamline adjustments, users can:
+  <ul>
+    <li><strong>Reset Champions</strong> to clear all selected champions,</li>
+    <li><strong>Reset Players</strong> to clear all player inputs, and</li>
+    <li><strong>Swap Players</strong> or <strong>Swap Champions</strong> to exchange players or picks between teams.</li>
+  </ul>
+  These convenience features allow quick iterations of different combinations. Once a prediction is requested, the result appears in an overlay that can be closed anytime to continue refining the draft.
+</p>
+
+<h4>Note on <em>config.js</em> and the const <em>API_URL</em> </h4>
+<p>
+  For security reasons, the file named <code>config.js</code> containing the API URL as a constant is not included in this repository. You can create your own 
+  <code>config.js</code> file locally, define <code>API_URL</code> within it, and reference it in your code to enable API requests without exposing sensitive information.
+</p>
 
 <h2><b>ESPAÑOL</b></h2>
 
@@ -180,5 +218,44 @@ A continuación, se muestra un diagrama que ilustra la arquitectura general de d
 
 <b>Lambda Handler</b> (lambda_handler.py):
 Esta es una función que recibe un evento JSON, lo envía a un endpoint específico de SageMaker para realizar la inferencia y devuelve la predicción en el cuerpo de la respuesta. La idea es utilizarla como un puente entre la API REST y el Endpoint de SageMaker.
+
+<h3>Webpage</h3>
+<p>
+  Esta carpeta contiene los archivos de un sitio web estático simple alojado en un bucket de S3 y servido a través de CloudFront. El sitio web interactúa con una API REST para mostrar las predicciones del modelo de predicciones, basadas en la información proporcionada por el usuario.
+</p>
+
+<h4>Funcionalidad Principal</h4>
+<p>
+  Esta página web ofrece una interfaz interactiva para predicciones de drafts de League of Legends. Los usuarios pueden ver todos los campeones disponibles en una tabla desplazable y filtrarlos mediante una barra de búsqueda. Cada campeón se muestra con una imagen y un nombre para facilitar su identificación. La tabla se completa automáticamente a partir del archivo <code>champions_ids.json</code>, y cualquier campeón que ya haya sido seleccionado para un equipo se deshabilita para evitar duplicados.
+</p>
+
+<p>
+  Para seleccionar campeones, los usuarios arrastran la imagen de un campeón desde la tabla y la sueltan en uno de los diez “cuadros”: cinco para el equipo azul y cinco para el equipo rojo ordenados basados en los roles del equipo (Top, Jungla, Mid, Adc, Support). Un efecto atenuado indica que el campeón ya no está disponible. Cada cuadro incluye un botón de eliminación que, al hacer clic, libera ese campeón y lo vuelve a habilitar en la tabla para futuras selecciones.
+</p>
+
+<p>
+  Además de los campeones, hay campos de texto para el nombre de los jugadores. Estos campos ofrecen sugerencias en tiempo real y validan las entradas contra el archivo local <code>players_ids.json</code>. Cualquier nombre no válido se resalta con un borde rojo y un mensaje de error, deshabilitando los botones de predicción hasta que se corrija.
+</p>
+
+<p>
+  Una vez que los diez cuadros (campeones y nombres de jugadores) están correctamente completados, el usuario puede solicitar una predicción de la probabilidad de victoria. Dependiendo del botón seleccionado—<strong>Predict</strong> o <strong>Predict Draft</strong>—el sistema muestra una única probabilidad o calcula una probabilidad comparativa intercambiando las composiciones de campeones entre ambos equipos. El resultado indica cuál equipo es el favorito y la probabilidad porcentual de que gane.
+</p>
+
+<p>
+  Para agilizar los ajustes, los usuarios pueden:
+  <ul>
+    <li><strong>Reiniciar Campeones</strong> para borrar todos los campeones seleccionados,</li>
+    <li><strong>Reiniciar Jugadores</strong> para borrar todos los nombres ingresados, y</li>
+    <li><strong>Intercambiar Jugadores</strong> o <strong>Intercambiar Campeones</strong> para cambiar los jugadores o los picks entre los dos equipos.</li>
+  </ul>
+  Estas funciones permiten iterar rápidamente diferentes configuraciones. Una vez solicitada una predicción, el resultado aparece en una ventana superpuesta que se puede cerrar en cualquier momento para seguir ajustando el draft.
+</p>
+
+<h4>Nota sobre <em>config.js</em> y la constante <em>API_URL</em></h4>
+<p>
+  Por razones de seguridad, el archivo <code>config.js</code> que contiene la constante <code>API_URL</code> no está incluido en este repositorio. Puedes crear tu propio archivo
+  <code>config.js</code> de forma local, definir <code>API_URL</code> en él y referenciarlo en tu código para habilitar las solicitudes a la API sin exponer información sensible.
+</p>
+
 
 
