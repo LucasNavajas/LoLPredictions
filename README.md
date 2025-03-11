@@ -34,11 +34,56 @@ This repository showcases a fully deployed machine learning solution on AWS for 
 <br>
 </ol>
 
-Each folder includes its own <b>README.md</b> with detailed explanations of its contents and usage instructions.
-
 Below is a diagram illustrating the overall AWS deployment architecture:
 <br>
 ![Untitled (1)](https://github.com/user-attachments/assets/bc64eb63-3bcf-4f7e-a12b-4980bc3028c7)
+<br>
+
+<h2><p>Below is a more detailed explanation of each folder and its purpose in this project:</p></h2>
+
+<h3>code:</h3>
+<p>
+  This folder contains everything needed to implement the AWS SageMaker model and the AWS Lambda function that will call the SageMaker Endpoint (which is linked to a REST API).
+  There are two groups of files inside this folder:
+</p>
+
+<b>Inference Model files</b>: Files stored in an S3 bucket to serve an inference model created in SageMaker
+<ul>
+  <li>
+    <b>requirements.txt:</b> All the libraries that need to be installed to run the inference model.
+  </li>
+  <li>
+    <b>model.tar.gz:</b> This archive contains all the files from the "Pytorch Model" folder that are required to deploy the model on AWS (all of them will be explained in detail in the Pytorch Model folder section):
+    <ul>
+      <li>inference.py</li>
+      <li>match_predictor_model.py</li>
+      <li>model.pth</li>
+      <li>data_preprocessing.py</li>
+      <li>preprocessor.joblib</li>
+      <li>champions_ids.json</li>
+      <li>player_glicko_ratings.json</li>
+      <li>players_ids.json</li>
+      <li>requirements.txt</li>
+    </ul>
+    <p>
+      The command used in the console to create <em>model.tar.gz</em> is:
+    </p>
+    <em>
+      tar -czvf model.tar.gz code/inference.py PytorchModel/model.pth PytorchModel/models/match_predictor_model.py PytorchModel/utils/data_preprocessing.py PytorchModel/preprocessor.joblib PytorchModel/info/champions_ids.json PytorchModel/glicko.py PytorchModel/info/player_glicko_ratings.json PytorchModel/info/players_ids.json code/requirements.txt
+    </em>
+  </li>
+  <li>
+    <b>inference.py:</b> A script designed for hosting the PyTorch model on SageMaker. It handles four main tasks required by SageMaker for model serving:
+    <ul>
+      <li><b>Model Loading (model_fn):</b> Loads the trained PyTorch model from the specified <em>model_dir</em>, which in this case is simply “model.pth.”</li>
+      <li><b>Data Preprocessing (input_fn):</b> Parses the JSON input and converts it into feature tensors (Champion IDs and team Glicko ratings).</li>
+      <li><b>Model Inference (predict_fn):</b> Transforms the input tensors, runs them through the model, and outputs a raw probability for the predicted winner.</li>
+      <li><b>Post-processing Output (output_fn):</b> Formats this probability into a JSON response.</li>
+    </ul>
+  </li>
+</ul>
+<br>
+<b>Lambda Handler</b> (lambda_handler.py):  This is a function that takes a JSON event, sends it to a specified SageMaker endpoint for inference, and returns the prediction in the response body. The idea is to use this as a bridge between teh REST API and the SageMaker Endpoint.
 
 <h2><b>ESPAÑOL</b></h2>
 
