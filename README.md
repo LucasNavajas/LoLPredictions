@@ -123,6 +123,34 @@ Below is a diagram illustrating the overall AWS deployment architecture:
   <code>config.js</code> file locally, define <code>API_URL</code> within it, and reference it in your code to enable API requests without exposing sensitive information.
 </p>
 
+<h3>PytorchModel</h3>
+
+<p> This folder contains the core machine-learning components of the model with the actual model used for predictions. It's structured as follows:</p>
+<ul>
+  <li>data/
+    <ul>
+      <li>Datasheet.csv: The dataset used to train and evaluate the model. All the data is scraped from https://oracleselixir.com/ and transformed in another excel file to get only the desired data for training</li>
+    </ul>
+  </li>
+  <li>info/
+    <ul>
+      <li>champions_ids.json: Stores the champion ID mappings</li>
+      <li>player_glicko_ratings.json: Stores players skill ratings using a Glicko rating system approach</li>
+      <li>players_ids.json: File that maps player names to their unirque IDs</li>
+    </ul>
+  </li>
+  <li>models/
+    <ul>
+      <li>match_predictor_model.py: Script that defines the model architecture used for predictions. The model embeds champion IDs into dense vectors, processes them through a multi-layer feed-forward network alongside their team's Glicko rating, and then concatenates all processed representations. </li>
+    </ul>
+  </li>
+  <li>utils/
+    <ul>
+      <li>data_preprocessing.py: This script handles data preprocessing, feature engineering, and dataset preparation for training the League of Legends match prediction model. It calculates Glicko ratings for players based on historical match data, averages them to obtain team-wide ratings, and normalizes numerical features (the Glicko scores) while passing champion IDs as categorical inputs. The dataset is then split into training, validation, and test sets, converting them into PyTorch tensors for model training. Additionally, a preprocessing pipeline is saved using joblib to ensure consistency during inference.</li>
+    </ul>
+  </li>
+</ul>
+
 <h2><b>ESPAÑOL</b></h2>
 
 <h3><b>Modelo de Predicciones de League of Legends</b></h3>
@@ -157,8 +185,6 @@ Este repositorio presenta una solución de aprendizaje automático completamente
   </li>
   <br>
 </ol>
-
-Cada carpeta incluye su propio <b>README.md</b> con explicaciones detalladas de su contenido e instrucciones de uso.
 
 A continuación, se muestra un diagrama que ilustra la arquitectura general de despliegue en AWS:
 <br>
