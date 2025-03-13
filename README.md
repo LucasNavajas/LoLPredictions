@@ -1,6 +1,6 @@
 <b><a href="#ENGLISH">ENGLISH</a>/<a href="#ESPAÑOL">ESPAÑOL</a></b>
 
-<h1 id = "ENGLISH"><b>ENGLISH</b></h1>
+<h3 id = "ENGLISH"><b>ENGLISH</b></h3>
 
 <h1><b>League of Legends Predictions Model</b></h1>
 
@@ -219,7 +219,7 @@ This repository showcases a fully deployed machine learning solution on AWS for 
 </ul>
 
 
-<h1 id="ESPAÑOL"><b>ESPAÑOL</b></h1>
+<h3 id="ESPAÑOL"><b>ESPAÑOL</b></h3>
 
 <h1><b>Modelo de Predicciones de League of Legends</b></h1>
 
