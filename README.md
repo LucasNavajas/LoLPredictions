@@ -2,8 +2,22 @@
 
 <h1 id = "ENGLISH"><b>ENGLISH</b></h1>
 
-<h2><b>League of Legends Predictions Model</b></h2>
+<h1><b>League of Legends Predictions Model</b></h1>
 
+<h2>📌 Table of Contents</h2>
+<ul>
+  <li><a href="#introduction">Introduction</a></li>
+  <li><a href="#aws-architecture">AWS Deployment Architecture</a></li>
+  <li><a href="#repository-structure">Repository Structure</a></li>
+  <ul>
+    <li><a href="#code-folder">Code Folder</a></li>
+    <li><a href="#webpage">Webpage</a></li>
+    <li><a href="#pytorch-model">Pytorch Model</a></li>
+  </ul>
+  <li><a href="#limitations">Limitations, Possible Improvements, and Future Work</a></li>
+</ul>
+
+<h2 id="introduction">Introduction:</h2>
 This repository showcases a fully deployed machine learning solution on AWS for predicting outcomes of League of Legends professional matches. It is organized into three primary folders:
 
 <ol>
@@ -34,14 +48,14 @@ This repository showcases a fully deployed machine learning solution on AWS for 
 <br>
 </ol>
 
-Below is a diagram illustrating the overall AWS deployment architecture:
+<h2 id="aws-architecture">AWS Architecture:</h2>
 <br>
 <img src="https://github.com/user-attachments/assets/bc64eb63-3bcf-4f7e-a12b-4980bc3028c7" alt="Arquitectura de AWS" />
 <br>
 
-<h2><p>Below is a more detailed explanation of each folder and its purpose in this project:</p></h2>
+<h2 id="repository-structure"><p>Repository Structure:</p></h2>
 
-<h3>code:</h3>
+<h3 id="code-folder">code:</h3>
 <p>
   This folder contains everything needed to implement the AWS SageMaker model and the AWS Lambda function that will call the SageMaker Endpoint (which is linked to a REST API).
   There are two groups of files inside this folder:
@@ -85,7 +99,7 @@ Below is a diagram illustrating the overall AWS deployment architecture:
 <br>
 <b>Lambda Handler</b> (lambda_handler.py):  This is a function that takes a JSON event, sends it to a specified SageMaker endpoint for inference, and returns the prediction in the response body. The idea is to use this as a bridge between teh REST API and the SageMaker Endpoint.
 <br>
-<h3>Webpage</h3>
+<h3 id="webpage">Webpage</h3>
 <p>
   This folder contains the files for a simple static website hosted in an S3 bucket and served by CloudFront. The website interacts with a REST API to display predictions from the predictions model, based on user input.
 </p>
@@ -123,7 +137,7 @@ Below is a diagram illustrating the overall AWS deployment architecture:
   <code>config.js</code> file locally, define <code>API_URL</code> within it, and reference it in your code to enable API requests without exposing sensitive information.
 </p>
 
-<h3>PytorchModel</h3>
+<h3 id="pytorch-model">PytorchModel</h3>
 
 <p>This folder contains the core machine learning components of the model, structured as follows:</p>
 
@@ -161,7 +175,7 @@ Below is a diagram illustrating the overall AWS deployment architecture:
   <li><b>predict.py:</b> Loads the trained model, preprocesses input data, and generates win probability predictions. It evaluates both original and swapped team compositions, calculating confidence levels and composition win rates to assess draft impact.</li>
 </ul>
 
-<h2>Limitations, Possible Improvements, and Future Work</h2>
+<h2 id="limitations">Limitations, Possible Improvements, and Future Work</h2>
 
 <h3>Limitations</h3>
 <ul>
@@ -207,8 +221,22 @@ Below is a diagram illustrating the overall AWS deployment architecture:
 
 <h1 id="ESPAÑOL"><b>ESPAÑOL</b></h1>
 
-<h2><b>Modelo de Predicciones de League of Legends</b></h2>
+<h1><b>Modelo de Predicciones de League of Legends</b></h1>
 
+<h2>📌 Tabla de Contenidos</h2>
+<ul>
+  <li><a href="#introduccion">Introducción</a></li>
+  <li><a href="#arquitectura-aws">Arquitectura de Despliegue en AWS</a></li>
+  <li><a href="#estructura-del-repositorio">Estructura del Repositorio</a></li>
+  <ul>
+    <li><a href="#carpeta-code">Carpeta Code</a></li>
+    <li><a href="#pagina-web">Página Web</a></li>
+    <li><a href="#modelo-pytorch">Modelo Pytorch</a></li>
+  </ul>
+  <li><a href="#limitaciones">Limitaciones, Posibles Mejoras y Trabajo Futuro</a></li>
+</ul>
+
+<h2 id="introduccion">Introducción:</h2>
 Este repositorio presenta una solución de aprendizaje automático completamente desplegada en AWS para predecir los resultados de partidos profesionales League of Legends. Está organizado en tres carpetas principales:
 
 <ol>
@@ -240,16 +268,14 @@ Este repositorio presenta una solución de aprendizaje automático completamente
   <br>
 </ol>
 
-A continuación, se muestra un diagrama que ilustra la arquitectura general de despliegue en AWS:
+<h2 id="arquitectura-aws">Arquitectura AWS</h2>
 <br>
 <img src="https://github.com/user-attachments/assets/bc64eb63-3bcf-4f7e-a12b-4980bc3028c7" alt="Arquitectura de AWS" />
 <br>
 
-<h2>
-  <p>A continuación se presenta una explicación más detallada de cada carpeta y su propósito en este proyecto:</p>
-</h2>
+<h2 id="estructura-del-repositorio">Estructura del repositorio:</h2>
 
-<h3>code:</h3>
+<h3 id="capeta-code">code:</h3>
 <p>
   Esta carpeta contiene todo lo necesario para implementar el modelo de AWS SageMaker y la función de AWS Lambda que llama al Endpoint de SageMaker (el cual está vinculado a una API REST).
   Hay dos grupos de archivos dentro de esta carpeta:
@@ -299,7 +325,7 @@ A continuación, se muestra un diagrama que ilustra la arquitectura general de d
 <b>Lambda Handler</b> (lambda_handler.py):
 Esta es una función que recibe un evento JSON, lo envía a un endpoint específico de SageMaker para realizar la inferencia y devuelve la predicción en el cuerpo de la respuesta. La idea es utilizarla como un puente entre la API REST y el Endpoint de SageMaker.
 
-<h3>Webpage</h3>
+<h3 id="pagina-web">Webpage</h3>
 <p>
   Esta carpeta contiene los archivos de un sitio web estático simple alojado en un bucket de S3 y servido a través de CloudFront. El sitio web interactúa con una API REST para mostrar las predicciones del modelo de predicciones, basadas en la información proporcionada por el usuario.
 </p>
@@ -337,7 +363,7 @@ Esta es una función que recibe un evento JSON, lo envía a un endpoint específ
   <code>config.js</code> de forma local, definir <code>API_URL</code> en él y referenciarlo en tu código para habilitar las solicitudes a la API sin exponer información sensible.
 </p>
 
-<h3>PytorchModel</h3>
+<h3 id="modelo-pytorch">PytorchModel</h3>
 
 <p>Esta carpeta contiene los componentes principales del modelo de machine learning, estructurados de la siguiente manera:</p>
 
@@ -375,7 +401,7 @@ Esta es una función que recibe un evento JSON, lo envía a un endpoint específ
   <li><b>predict.py:</b> Carga el modelo entrenado, preprocesa los datos de entrada y genera predicciones de probabilidad de victoria. Evalúa tanto la composición original como una versión intercambiada de los equipos, calculando niveles de confianza y tasas de victoria de la composición para analizar el impacto del draft.</li>
 </ul>
 
-<h2>Limitaciones, Posibles Mejoras y Trabajo Futuro</h2>
+<h2 id="limitaciones">Limitaciones, Posibles Mejoras y Trabajo Futuro</h2>
 
 <h3>Limitaciones</h3>
 <ul>
