@@ -275,7 +275,7 @@ Este repositorio presenta una solución de aprendizaje automático completamente
 
 <h2 id="estructura-del-repositorio">Estructura del repositorio:</h2>
 
-<h3 id="capeta-code">code:</h3>
+<h3 id="carpeta-code">code:</h3>
 <p>
   Esta carpeta contiene todo lo necesario para implementar el modelo de AWS SageMaker y la función de AWS Lambda que llama al Endpoint de SageMaker (el cual está vinculado a una API REST).
   Hay dos grupos de archivos dentro de esta carpeta:
