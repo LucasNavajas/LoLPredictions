@@ -1,8 +1,8 @@
-<b>ENGLISH/ESPAÑOL</b>
+<b><a href="#ENGLISH">ENGLISH</a>/<a href="#ESPAÑOL">ESPAÑOL</a></b>
 
-<h2><b>ENGLISH</b></h2>
+<h1 id = "ENGLISH"><b>ENGLISH</b></h1>
 
-<h3><b>League of Legends Predictions Model</b></h3>
+<h2><b>League of Legends Predictions Model</b></h2>
 
 This repository showcases a fully deployed machine learning solution on AWS for predicting outcomes of League of Legends professional matches. It is organized into three primary folders:
 
@@ -125,35 +125,89 @@ Below is a diagram illustrating the overall AWS deployment architecture:
 
 <h3>PytorchModel</h3>
 
-<p> This folder contains the core machine-learning components of the model with the actual model used for predictions. It's structured as follows:</p>
+<p>This folder contains the core machine learning components of the model, structured as follows:</p>
+
 <ul>
-  <li>data/
+  <li><b>data/</b>
     <ul>
-      <li>Datasheet.csv: The dataset used to train and evaluate the model. All the data is scraped from https://oracleselixir.com/ and transformed in another excel file to get only the desired data for training</li>
+      <li><b>Datasheet.csv:</b> Dataset used for training and evaluation, sourced from <a href="https://oracleselixir.com/">Oracle's Elixir</a> and preprocessed to extract relevant data.</li>
     </ul>
   </li>
-  <li>info/
+  
+  <li><b>info/</b>
     <ul>
-      <li>champions_ids.json: Stores the champion ID mappings</li>
-      <li>player_glicko_ratings.json: Stores players skill ratings using a Glicko rating system approach</li>
-      <li>players_ids.json: File that maps player names to their unirque IDs</li>
+      <li><b>champions_ids.json:</b> Champion ID mappings.</li>
+      <li><b>player_glicko_ratings.json:</b> Player skill ratings using the Glicko system.</li>
+      <li><b>players_ids.json:</b> Maps player names to unique IDs.</li>
     </ul>
   </li>
-  <li>models/
+
+  <li><b>models/</b>
     <ul>
-      <li>match_predictor_model.py: Script that defines the model architecture used for predictions. The model embeds champion IDs into dense vectors, processes them through a multi-layer feed-forward network alongside their team's Glicko rating, and then concatenates all processed representations. </li>
+      <li><b>match_predictor_model.py:</b> Defines the model architecture, embedding champion IDs and processing them alongside team Glicko ratings through a multi-layer feed-forward network.</li>
     </ul>
   </li>
-  <li>utils/
+
+  <li><b>utils/</b>
     <ul>
-      <li>data_preprocessing.py: This script handles data preprocessing, feature engineering, and dataset preparation for training the League of Legends match prediction model. It calculates Glicko ratings for players based on historical match data, averages them to obtain team-wide ratings, and normalizes numerical features (the Glicko scores) while passing champion IDs as categorical inputs. The dataset is then split into training, validation, and test sets, converting them into PyTorch tensors for model training. Additionally, a preprocessing pipeline is saved using joblib to ensure consistency during inference.</li>
+      <li><b>data_preprocessing.py:</b> Handles data preprocessing, feature engineering, and dataset preparation. It computes Glicko ratings, normalizes numerical features, and splits data into training, validation, and test sets, ensuring consistency with a saved preprocessing pipeline.</li>
     </ul>
+  </li>
+
+  <li><b>glicko.py:</b> Computes and updates player Glicko ratings based on match outcomes, adjusting skill ratings and confidence levels, then saves them for training and inference.</li>
+
+  <li><b>train.py:</b> Trains, evaluates, and saves the model using champion selections and team Glicko ratings. It tracks training progress, optimizes with Adam, plots accuracy/loss metrics, and stores trained weights (<code>model.pth</code>).</li>
+
+  <li><b>predict.py:</b> Loads the trained model, preprocesses input data, and generates win probability predictions. It evaluates both original and swapped team compositions, calculating confidence levels and composition win rates to assess draft impact.</li>
+</ul>
+
+<h2>Limitations, Possible Improvements, and Future Work</h2>
+
+<h3>Limitations</h3>
+<ul>
+  <li>
+    <b>Limited to regional matches:</b> The model does not work for international competitions where teams from different regions face each other. This is due to how Glicko Ratings are calculated, as the region is not factored in. 
+    <br><br>
+    <i>Example:</i> In the MSI 2024 match between <b>T1</b> and <b>Estral Esports</b>, the model incorrectly predicted Estral as the winner because they had a more dominant performance in the <b>LLA</b> compared to T1 in the <b>LCK</b>. However, since LCK is a much stronger region, this prediction was unrealistic.
+  </li>
+
+  <li>
+    <b>Struggles with predicting upsets:</b> The model heavily weighs the average Glicko rating as the most important feature, making it less effective at predicting unexpected results (upsets). Lower-ranked teams that perform exceptionally well in a match are often underestimated.
+  </li>
+
+  <li>
+    <b>Match date is not considered:</b> The training data does not account for the date of each match, meaning older matches (e.g., from 8 months ago) are treated the same as recent ones. This prevents the model from adapting to shifts in the meta and current gameplay trends
+    (e.g., if <b>Red Side</b> becomes stronger than <b>Blue Side</b> in a particular patch).
   </li>
 </ul>
 
-<h2><b>ESPAÑOL</b></h2>
+<h3>Possible Improvements and Future Work</h3>
+<ul>
+  <li>
+    <b>Improve draft evaluation:</b> Instead of simply swapping compositions and recalculating probabilities, develop a more advanced method for assessing draft advantages.
+  </li>
 
-<h3><b>Modelo de Predicciones de League of Legends</b></h3>
+  <li>
+    <b>Incorporate regional differences:</b> Some champions and team compositions perform better in specific regions but worse in others. Adding regional data as an input feature could enhance prediction accuracy.
+  </li>
+
+  <li>
+    <b>Adapt the model for international tournaments:</b> Introducing a Glicko rating system for regions could help quantify the relative strength of different leagues when teams from different regions face off.
+  </li>
+
+  <li>
+    <b>Expand and refine the dataset:</b> Include matches from previous years while adding the match date as a parameter to account for shifts in the meta over time.
+  </li>
+
+  <li>
+    <b>Enhance champion embeddings:</b> Improve the model's understanding of champion interactions by introducing direct champion-to-champion synergy within each team's composition.
+  </li>
+</ul>
+
+
+<h1 id="ESPAÑOL"><b>ESPAÑOL</b></h1>
+
+<h2><b>Modelo de Predicciones de League of Legends</b></h2>
 
 Este repositorio presenta una solución de aprendizaje automático completamente desplegada en AWS para predecir los resultados de partidos profesionales League of Legends. Está organizado en tres carpetas principales:
 
@@ -282,6 +336,88 @@ Esta es una función que recibe un evento JSON, lo envía a un endpoint específ
   Por razones de seguridad, el archivo <code>config.js</code> que contiene la constante <code>API_URL</code> no está incluido en este repositorio. Puedes crear tu propio archivo
   <code>config.js</code> de forma local, definir <code>API_URL</code> en él y referenciarlo en tu código para habilitar las solicitudes a la API sin exponer información sensible.
 </p>
+
+<h3>PytorchModel</h3>
+
+<p>Esta carpeta contiene los componentes principales del modelo de machine learning, estructurados de la siguiente manera:</p>
+
+<ul>
+  <li><b>data/</b>
+    <ul>
+      <li><b>Datasheet.csv:</b> Conjunto de datos utilizado para el entrenamiento y evaluación, obtenido de <a href="https://oracleselixir.com/">Oracle's Elixir</a> y preprocesado para extraer la información relevante.</li>
+    </ul>
+  </li>
+  
+  <li><b>info/</b>
+    <ul>
+      <li><b>champions_ids.json:</b> Mapeo de IDs de campeones.</li>
+      <li><b>player_glicko_ratings.json:</b> Calificaciones de habilidad de los jugadores basadas en el sistema Glicko.</li>
+      <li><b>players_ids.json:</b> Asocia los nombres de los jugadores con sus IDs únicos.</li>
+    </ul>
+  </li>
+
+  <li><b>models/</b>
+    <ul>
+      <li><b>match_predictor_model.py:</b> Define la arquitectura del modelo, incorporando los IDs de los campeones y procesándolos junto con las calificaciones Glicko del equipo a través de una red neuronal de múltiples capas.</li>
+    </ul>
+  </li>
+
+  <li><b>utils/</b>
+    <ul>
+      <li><b>data_preprocessing.py:</b> Maneja el preprocesamiento de datos, la ingeniería de características y la preparación del dataset. Calcula calificaciones Glicko, normaliza características numéricas y divide los datos en conjuntos de entrenamiento, validación y prueba, garantizando la consistencia con un pipeline de preprocesamiento guardado.</li>
+    </ul>
+  </li>
+
+  <li><b>glicko.py:</b> Calcula y actualiza las calificaciones Glicko de los jugadores según los resultados de los partidos, ajustando sus niveles de habilidad y confianza, y los guarda para el entrenamiento y la inferencia.</li>
+
+  <li><b>train.py:</b> Entrena, evalúa y guarda el modelo utilizando selecciones de campeones y calificaciones Glicko de los equipos. Realiza un seguimiento del progreso del entrenamiento, optimiza con Adam, grafica métricas de precisión/pérdida y almacena los pesos entrenados (<code>model.pth</code>).</li>
+
+  <li><b>predict.py:</b> Carga el modelo entrenado, preprocesa los datos de entrada y genera predicciones de probabilidad de victoria. Evalúa tanto la composición original como una versión intercambiada de los equipos, calculando niveles de confianza y tasas de victoria de la composición para analizar el impacto del draft.</li>
+</ul>
+
+<h2>Limitaciones, Posibles Mejoras y Trabajo Futuro</h2>
+
+<h3>Limitaciones</h3>
+<ul>
+  <li>
+    <b>Limitado a competiciones regionales:</b> El modelo no es preciso en torneos internacionales donde equipos de distintas regiones se enfrentan. Esto se debe a que las calificaciones Glicko no consideran la región de origen. 
+    <br><br>
+    <i>Ejemplo:</i> En el partido de MSI 2024 entre <b>T1</b> y <b>Estral Esports</b>, el modelo predijo incorrectamente que Estral ganaría, ya que dominó la <b>LLA</b> más que T1 en la <b>LCK</b>. Sin embargo, dado que la LCK es una región mucho más fuerte, este resultado no tenía sentido.
+  </li>
+
+  <li>
+    <b>Dificultad para predecir sorpresas (upsets):</b> El modelo da una importancia excesiva a la calificación promedio de Glicko, lo que reduce la probabilidad de predecir resultados inesperados. Equipos de menor ranking que juegan excepcionalmente bien suelen ser subestimados.
+  </li>
+
+  <li>
+    <b>Ignora la fecha del partido:</b> El modelo no considera cuándo se jugó un partido, por lo que trata los encuentros de hace <b>8 meses</b> como si fueran recientes. Esto impide que el modelo detecte cambios en el meta o tendencias del juego 
+    (por ejemplo, si el <b>Equipo Rojo</b> es más fuerte que el <b>Equipo Azul</b> en un parche específico).
+  </li>
+</ul>
+
+<h3>Posibles Mejoras y Trabajo Futuro</h3>
+<ul>
+  <li>
+    <b>Mejorar la evaluación de drafts:</b> En lugar de solo intercambiar composiciones y recalcular probabilidades, desarrollar un método más avanzado para medir ventajas de draft.
+  </li>
+
+  <li>
+    <b>Incluir diferencias entre regiones:</b> Algunos campeones y estrategias funcionan mejor en ciertas regiones y peor en otras. Agregar esta información como un parámetro de entrada podría mejorar la precisión del modelo.
+  </li>
+
+  <li>
+    <b>Adaptar el modelo a torneos internacionales:</b> Incorporar un sistema de calificación Glicko para regiones ayudaría a medir la fuerza relativa de cada liga cuando compiten entre sí.
+  </li>
+
+  <li>
+    <b>Ampliar y mejorar el dataset:</b> Incluir partidos de años anteriores y agregar la fecha como parámetro para que el modelo pueda diferenciar entre encuentros antiguos y actuales.
+  </li>
+
+  <li>
+    <b>Optimizar las representaciones de campeones:</b> Mejorar la forma en que el modelo entiende la interacción entre campeones dentro de una misma composición de equipo.
+  </li>
+</ul>
+
 
 
 
