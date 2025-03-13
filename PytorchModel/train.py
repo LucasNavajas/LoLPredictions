@@ -215,5 +215,5 @@ print(f'Model accuracy on the test set: {test_accuracy * 100:.2f}%')
 # ----------------------------------------------------------------------
 # Save Model Weights
 # ----------------------------------------------------------------------
-torch.save(model.state_dict(), os.path.join(BASE_DIR, 'model3.pth'))
+torch.save(model.state_dict(), os.path.join(BASE_DIR, 'model.pth'))
 print('Training completed.')
