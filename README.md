@@ -83,7 +83,17 @@ This repository showcases a fully deployed machine learning solution on AWS for 
       The command used in the console to create <em>model.tar.gz</em> is:
     </p>
     <em>
-      tar -czvf model.tar.gz code/inference.py PytorchModel/model.pth PytorchModel/models/match_predictor_model.py PytorchModel/utils/data_preprocessing.py PytorchModel/preprocessor.joblib PytorchModel/info/champions_ids.json PytorchModel/glicko.py PytorchModel/info/player_glicko_ratings.json PytorchModel/info/players_ids.json code/requirements.txt
+     tar -czvf model.tar.gz --transform='s|PytorchModel/||' \
+    code/inference.py \
+    PytorchModel/model.pth \
+    PytorchModel/models/match_predictor_model.py \
+    PytorchModel/utils/data_preprocessing.py \
+    PytorchModel/preprocessor.joblib \
+    PytorchModel/info/champions_ids.json \
+    PytorchModel/glicko.py \
+    PytorchModel/info/player_glicko_ratings.json \
+    PytorchModel/info/players_ids.json \
+    code/requirements.txt
     </em>
   </li>
   <li>
@@ -303,10 +313,17 @@ Este repositorio presenta una solución de aprendizaje automático completamente
       El comando utilizado en la consola para crear <em>model.tar.gz</em> es:
     </p>
     <em>
-      tar -czvf model.tar.gz code/inference.py PytorchModel/model.pth PytorchModel/models/match_predictor_model.py
-      PytorchModel/utils/data_preprocessing.py PytorchModel/preprocessor.joblib PytorchModel/info/champions_ids.json
-      PytorchModel/glicko.py PytorchModel/info/player_glicko_ratings.json PytorchModel/info/players_ids.json
-      code/requirements.txt
+     tar -czvf model.tar.gz --transform='s|PytorchModel/||' \
+    code/inference.py \
+    PytorchModel/model.pth \
+    PytorchModel/models/match_predictor_model.py \
+    PytorchModel/utils/data_preprocessing.py \
+    PytorchModel/preprocessor.joblib \
+    PytorchModel/info/champions_ids.json \
+    PytorchModel/glicko.py \
+    PytorchModel/info/player_glicko_ratings.json \
+    PytorchModel/info/players_ids.json \
+    code/requirements.txt
     </em>
   </li>
   <li>
