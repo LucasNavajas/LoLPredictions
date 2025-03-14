@@ -2,7 +2,7 @@ import os
 import torch
 import json
 import pandas as pd
-from PytorchModel.models.match_predictor_model import MatchPredictor
+from models.match_predictor_model import MatchPredictor
 from joblib import load
 
 def model_fn(model_dir):
