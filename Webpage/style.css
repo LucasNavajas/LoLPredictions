@@ -78,8 +78,8 @@ label {
 }
 
 .box-label {
-    width: 30vh;
-    height: 3vh;
+    width: 20vh;
+    height: 2.5vh;
     margin-bottom: 1vh;
     font-family: 'BeaufortforLOL', sans-serif;
     font-weight: normal; 
@@ -111,6 +111,7 @@ input:focus {
     gap: 0.9vh;
     align-items: center;
     padding: 1.2vh;
+    margin-top: 4.5vh;
 }
 
 .stacked-box {
@@ -135,8 +136,8 @@ input:focus {
 
 
 .box {
-    width: 12.8vh;
-    height: 12.8vh;
+    width: 11vh;
+    height: 11vh;
     background-size: cover;
     background-position: center;
     border-radius: 1vh;
@@ -210,9 +211,6 @@ datalist {
     padding: 2vh;
 }
 
-.player-input {
-    margin-top: 6.4vh;
-}
 
 .error-message {
     color: red;
@@ -342,6 +340,23 @@ datalist {
     align-items: flex-start;
   }
 
+  .dropeables-champions-container {
+    margin-left: -6vh;
+  }
+
+  .inputs-blue, .inputs-red {
+    margin-top: 12vh;
+  }
+
+  .inputs-red {
+    margin-left: -6vh;
+  }
+
+  .player-input {
+    margin-bottom: 6.5vh;
+  }
+
+
   .controls-container {
     display: flex;           
     justify-content: center;   
@@ -349,7 +364,22 @@ datalist {
     gap: 1rem;                      
   }
   
+
+    #champion-search {
+        width: 80%;
+    }
+    
+    .champions-table {
+        width: 50%;
+    }
   
+  
+    .draft {
+        margin-top: -5vh;
+    }
+    .button-container {
+        margin-top: -5vh;
+    }
   @media (max-width: 1350px) {
 
     .draft {
@@ -366,18 +396,27 @@ datalist {
     }
 
     .player-input {
+        margin-top: 0.2vh;
+        margin-bottom: 1vh;
+    }
+
+    .inputs-red, .inputs-blue {
         margin-top: 1vh;
     }
 
+    .dropeables-champions-container, .inputs-red {
+        margin-left: 0vh;
+    }
+
+    #predict-draft-button, #predict-button {
+        margin-right: 0vh;
+    }
     .controls-container {
-        /* Switch to grid with exactly two columns */
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        /* The above means "2 columns, each 1 fraction of the available space." */
         gap: 1rem; 
       }
       
-      /* Buttons span full width of their grid cell */
       .swap-button {
         width: 100%;
         font-size: 1.3vh;

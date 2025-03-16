@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", async function () {
           return 1;
         } else if (width < 900) {
           return 2;
+        } else if (width < 1400) {
+            return 4;
         }
         return 6; // default
       }
