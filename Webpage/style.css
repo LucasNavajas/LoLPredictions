@@ -397,11 +397,15 @@ datalist {
 
     .player-input {
         margin-top: 0.2vh;
-        margin-bottom: 1vh;
+        margin-bottom: 0vh;
     }
 
-    .inputs-red, .inputs-blue {
-        margin-top: 1vh;
+    .inputs-blue {
+        margin-top: 3vh;
+    }
+
+    .inputs-red {
+        margin-top: 0.5vh;
     }
 
     .dropeables-champions-container, .inputs-red {
