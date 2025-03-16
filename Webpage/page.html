@@ -33,93 +33,107 @@
             <div class="chance-text">50% chance</div>
         </div>
         
-        <!-- Inputs section, with player names and champions per player -->
         <div class="draft">
-            
-            <!-- Blue side container -->
-            <div class="stacked-boxes-container">
-                <div class="stacked-box">
-                    <div>
-                        <input type="text" class="box-label" data-slot="1" placeholder="Blue Top">
-                        <small class="error-message">Invalid player</small>
-                    </div>
-                    <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="1"></div>
+            <!-- Blue side inputs -->
+            <div class="inputs-blue">
+                <div class="player-input">
+                    <input type="text" class="box-label" data-slot="1" placeholder="Blue Top">
+                    <small class="error-message">Invalid player</small>
                 </div>
-                <div class="stacked-box">
-                    <div>
-                        <input type="text" class="box-label" data-slot="2" placeholder="Blue Jungle">
-                        <small class="error-message">Invalid player</small>
-                    </div>
-                    <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="2"></div>
+                <div class="player-input">
+                    <input type="text" class="box-label" data-slot="2" placeholder="Blue Jungle">
+                    <small class="error-message">Invalid player</small>
                 </div>
-                <div class="stacked-box">
-                    <div>
-                        <input type="text" class="box-label" data-slot="3" placeholder="Blue Mid">
-                        <small class="error-message">Invalid player</small>
-                    </div>
-                    <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="3"></div>
+                <div class="player-input">
+                    <input type="text" class="box-label" data-slot="3" placeholder="Blue Mid">
+                    <small class="error-message">Invalid player</small>
                 </div>
-                <div class="stacked-box">
-                    <div>
-                        <input type="text" class="box-label" data-slot="4" placeholder="Blue ADC">
-                        <small class="error-message">Invalid player</small>
-                    </div>
-                    <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="4"></div>
+                <div class="player-input">
+                    <input type="text" class="box-label" data-slot="4" placeholder="Blue ADC">
+                    <small class="error-message">Invalid player</small>
                 </div>
-                <div class="stacked-box">
-                    <div>
-                        <input type="text" class="box-label" data-slot="5" placeholder="Blue Support">
-                        <small class="error-message">Invalid player</small>
-                    </div>
-                    <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="5"></div>
+                <div class="player-input">
+                    <input type="text" class="box-label" data-slot="5" placeholder="Blue Support">
+                    <small class="error-message">Invalid player</small>
                 </div>
             </div>
-
-            <!-- All champions table -->
-            <div>
-                <input type="text" id="champion-search" placeholder="Search Champion..." style="width: 97%; padding: 10px; margin-bottom: 10px; font-size: 16px;">
-                <div class="scrollable-table" id="champion-grid" tabindex="-1"></div>
-            </div>
-            
-            <!-- Red side container -->
-            <div class="stacked-boxes-container">
-                <div class="stacked-box">
-                    <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="6"></div>
-                    <div>
+            <!-- Container holding all dropeable boxes and the champions table -->
+            <div class="dropeables-champions-container">
+                
+                <!-- Blue side dropeable boxes -->
+                <div class="stacked-boxes-container">
+                    <div class="box dropeable stacked-box" data-slot="1" 
+                         style="background-image: url('assets/champion_images/-1.png');">
+                    </div>
+                    <div class="box dropeable stacked-box" data-slot="2" 
+                         style="background-image: url('assets/champion_images/-1.png');">
+                    </div>
+                    <div class="box dropeable stacked-box" data-slot="3" 
+                         style="background-image: url('assets/champion_images/-1.png');">
+                    </div>
+                    <div class="box dropeable stacked-box" data-slot="4" 
+                         style="background-image: url('assets/champion_images/-1.png');">
+                    </div>
+                    <div class="box dropeable stacked-box" data-slot="5" 
+                         style="background-image: url('assets/champion_images/-1.png');">
+                    </div>
+                </div>
+        
+                <!-- Champions table in the middle -->
+                <div class="champions-table">
+                    <input type="text" id="champion-search" placeholder="Search Champion...">
+                    <div class="scrollable-table" id="champion-grid" tabindex="-1"></div>
+                </div>
+                
+                <!-- Red side dropeable boxes -->
+                <div class="stacked-boxes-container">
+                    <div class="box dropeable" data-slot="6" 
+                         style="background-image: url('assets/champion_images/-1.png');">
+                    </div>
+                    <div class="box dropeable" data-slot="7" 
+                         style="background-image: url('assets/champion_images/-1.png');">
+                    </div>
+                    <div class="box dropeable" data-slot="8" 
+                         style="background-image: url('assets/champion_images/-1.png');">
+                    </div>
+                    <div class="box dropeable" data-slot="9" 
+                         style="background-image: url('assets/champion_images/-1.png');">
+                    </div>
+                    <div class="box dropeable" data-slot="10" 
+                         style="background-image: url('assets/champion_images/-1.png');">
+                    </div>
+                </div>
+        
+            </div> 
+                
+        
+                <!-- Red side inputs -->
+                <div class="inputs-red">
+                    <div class="player-input">
                         <input type="text" class="box-label" data-slot="6" placeholder="Red Top">
                         <small class="error-message">Invalid player</small>
                     </div>
-                </div>
-                <div class="stacked-box">
-                    <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="7"></div>
-                    <div>
+                    <div class="player-input">
                         <input type="text" class="box-label" data-slot="7" placeholder="Red Jungle">
                         <small class="error-message">Invalid player</small>
                     </div>
-                </div>
-                <div class="stacked-box">
-                    <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="8"></div>
-                    <div>
+                    <div class="player-input">
                         <input type="text" class="box-label" data-slot="8" placeholder="Red Mid">
                         <small class="error-message">Invalid player</small>
                     </div>
-                </div>
-                <div class="stacked-box">
-                    <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="9"></div>
-                    <div>
+                    <div class="player-input">
                         <input type="text" class="box-label" data-slot="9" placeholder="Red ADC">
                         <small class="error-message">Invalid player</small>
                     </div>
-                </div>
-                <div class="stacked-box">
-                    <div class="box dropeable" style="background-image: url('assets/champion_images/-1.png');" data-slot="10"></div>
-                    <div>
+                    <div class="player-input">
                         <input type="text" class="box-label" data-slot="10" placeholder="Red Support">
                         <small class="error-message">Invalid player</small>
                     </div>
                 </div>
-            </div>
+        
+        
         </div>
+        
 
         <!-- Prediction buttons container -->
         <div class = "button-container">

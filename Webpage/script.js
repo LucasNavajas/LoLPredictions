@@ -20,54 +20,76 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // Create the div for each champion stored in the json file
-    function renderChampions(filter = "") {
+    function getResponsiveColumns() {
+        const width = window.innerWidth;
+        // You can tweak these breakpoints as you like
+        if (width < 600) {
+          return 1;
+        } else if (width < 900) {
+          return 2;
+        }
+        return 6; // default
+      }
+      
+      // Update your renderChampions function:
+      function renderChampions(filter = "") {
         let selectedChampions = new Set();
         droppableBoxes.forEach(box => {
-            const champion = box.getAttribute("champion");
-            if (champion) selectedChampions.add(champion);
+          const champion = box.getAttribute("champion");
+          if (champion) selectedChampions.add(champion);
         });
-    
-        let html = `<div style="height: 620px; overflow: auto; display: flex; justify-content: center;">
-                        <table style="margin: auto; height: 100%;"><tbody>`;
-    
-        let filteredChampions = Object.keys(championsData).filter(champion =>
-            !filter || champion.toLowerCase().includes(filter.toLowerCase()) // Keep all champions visible
+      
+        // Calculate columns here
+        const minColumns = getResponsiveColumns();
+      
+        let html = `<div style="height: 62vh; overflow: auto; display: flex; justify-content: center;">
+                      <table style="margin: auto; height: 100%;"><tbody>`;
+      
+        const filteredChampions = Object.keys(championsData).filter(champion =>
+          !filter || champion.toLowerCase().includes(filter.toLowerCase())
         );
-    
-        const minColumns = 6;
+      
+        // Ensure at least minColumns * some_min_rows (optional)
         const minRows = 3;
         const minElements = minColumns * minRows;
-    
-        if (filteredChampions.length < minElements) {
-            while (filteredChampions.length < minElements) {
-                filteredChampions.push(null);
-            }
+        while (filteredChampions.length < minElements) {
+          filteredChampions.push(null);
         }
-    
+      
         filteredChampions.forEach((champion, index) => {
-            if (index % minColumns === 0) html += "<tr>";
-    
-            if (champion) {
-                const isDisabled = selectedChampions.has(champion);
-                html += `<td style="text-align: center; padding: 15px;">
-                    <div style="display: flex; align-items: center; justify-content: center; width: 7rem; height: 7rem; background-image: url('assets/champion_images/${champion}.png');
-                    background-size: cover; background-position: center; border-radius: 30px; cursor: ${isDisabled ? "not-allowed" : "grab"}; 
-                    margin: auto; opacity: ${isDisabled ? "0.5" : "1"}; filter: ${isDisabled ? "grayscale(100%)" : "grayscale(0%)"};"
-                    draggable="${isDisabled ? "false" : "true"}" data-champion="${champion}"></div>
-                    <span style="display: block; font-size: 14px; font-weight: bold; color: white; margin-top: 5px;">${champion}</span>
-                </td>`;
-            } else {
-                html += "<td style='text-align: center; padding: 15px;'></td>"; // Empty cell placeholder
-            }
-    
-            if ((index + 1) % minColumns === 0) html += "</tr>";
+          if (index % minColumns === 0) html += "<tr>";
+          if (champion) {
+            const isDisabled = selectedChampions.has(champion);
+            html += `
+              <td style="text-align: center; padding: 1.5vh;">
+                <div style="display: flex; align-items: center; justify-content: center; width: 11vh; height: 11vh;
+                  background-image: url('assets/champion_images/${champion}.png');
+                  background-size: cover; background-position: center; border-radius: 3vh;
+                  cursor: ${isDisabled ? "not-allowed" : "grab"};
+                  margin: auto; opacity: ${isDisabled ? "0.5" : "1"};
+                  filter: ${isDisabled ? "grayscale(100%)" : "none"};"
+                  draggable="${isDisabled ? "false" : "true"}"
+                  data-champion="${champion}">
+                </div>
+                <span style="display: block; font-size: 0.9rem; font-weight: bold; color: white; margin-top: 0.5vh;">${champion}</span>
+              </td>`;
+          } else {
+            // Empty cell placeholder
+            html += `<td style='text-align: center; padding: 1.5vh;'></td>`;
+          }
+          if ((index + 1) % minColumns === 0) html += "</tr>";
         });
-    
+      
         html += "</tbody></table></div>";
-    
         container.innerHTML = html;
         addDragAndDropEvents();
-    }
+      }
+      
+      // Listen for screen resize and re-render:
+      window.addEventListener("resize", () => {
+        renderChampions(searchInput.value);
+      });
+      
 
     // Create a drag and drop functionality for all the champions' boxes inside the table
     function addDragAndDropEvents() {
@@ -116,13 +138,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                         removeBtn.classList.add("remove-button");
                         removeBtn.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
                         removeBtn.style.position = "absolute";
-                        removeBtn.style.top = "5px";
-                        removeBtn.style.right = "5px";
-                        removeBtn.style.width = "25px";
-                        removeBtn.style.height = "25px";
+                        removeBtn.style.top = "0.5vh";
+                        removeBtn.style.right = "0.5vh";
+                        removeBtn.style.width = "2.5vh";
+                        removeBtn.style.height = "2.5vh";
                         removeBtn.style.cursor = "pointer";
                         removeBtn.style.borderRadius = "50%";
-                        removeBtn.style.padding = "3px";
+                        removeBtn.style.padding = "0.3vh";
 
                         removeBtn.addEventListener("click", function () {
                             box.removeAttribute("champion");
@@ -135,6 +157,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                                 newChampionElement.style.opacity = "1";
                                 newChampionElement.style.filter = "grayscale(0%)";
                             }
+                            renderChampions(searchInput.value);
                         });
 
                         box.style.position = "relative";
@@ -168,7 +191,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     inputs.forEach((input, index) => {
         input.setAttribute("autocomplete", "off");
-
+        
+        
         const dataList = document.createElement("datalist");
         dataList.id = `datalist-${input.dataset.slot}`;
         document.body.appendChild(dataList);
@@ -182,7 +206,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         input.addEventListener("change", function () {
             if (!playerNamesLower.includes(this.value.toLowerCase())) {
 
-                this.style.border = "2px solid red";
+                this.style.border = "0.2vh solid red";
                 errorMessage.style.visibility = "visible"
 
                 const predictButton = document.getElementById("predict-button");
@@ -193,7 +217,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 predictDraftButton.classList.remove("enabled");
                 this.value = "";
             } else {
-                this.style.border = "2px solid white";
+                this.style.border = "0.2vh solid white";
                 errorMessage.style.visibility = "hidden"
                 dataList.innerHTML = ""
                 moveToNextInput(index);
@@ -453,6 +477,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Reset the players' input
     document.getElementById('reset-players').addEventListener('click', function() {
         document.querySelectorAll('.box-label').forEach(input => {
+            input.style.border = "0.2vh solid black";
+            input.style.borderBottom = "0.2vh solid gray";
             input.value = '';
         });
     });
@@ -466,6 +492,22 @@ document.addEventListener("DOMContentLoaded", async function () {
             let temp = blueInput.value;
             blueInput.value = redInput.value;
             redInput.value = temp;
+            if (redInput.value == "") {
+                redInput.style.border = "0.2vh solid black";
+                redInput.style.borderBottom = "0.2vh  solid gray";
+            }
+            else {
+                redInput.style.border =  "0.2vh  solid white"; 
+            }
+
+            if (blueInput.value == "") {
+                blueInput.style.border = "0.2vh  solid black";
+                blueInput.style.borderBottom = "0.2vh  solid gray";
+            }
+            else {
+                blueInput.style.border =  "0.2vh  solid white"; 
+            }
+
         }
     });
 
@@ -515,13 +557,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         removeBtn.classList.add("remove-button");
         removeBtn.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
         removeBtn.style.position = "absolute";
-        removeBtn.style.top = "5px";
-        removeBtn.style.right = "5px";
-        removeBtn.style.width = "25px";
-        removeBtn.style.height = "25px";
+        removeBtn.style.top = "0.5vh";
+        removeBtn.style.right = "0.5vh";
+        removeBtn.style.width = "2.5vh";
+        removeBtn.style.height = "2.5vh";
         removeBtn.style.cursor = "pointer";
         removeBtn.style.borderRadius = "50%";
-        removeBtn.style.padding = "3px";
+        removeBtn.style.padding = "0.3vh";
     
         removeBtn.addEventListener("click", function () {
             let championName = box.getAttribute("champion");
@@ -536,6 +578,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 championElement.style.opacity = "1";
                 championElement.style.filter = "grayscale(0%)";
             }
+            renderChampions(searchInput.value);
         });
     
         box.style.position = "relative";

@@ -4,23 +4,22 @@
     font-weight: 900;
     font-style: normal;
 }
-
 body {
     font-family: 'BeaufortforLOL', sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
-    padding: 20px;
+    gap: 2vh;
+    padding: 3vh;
     background-image: url('assets/imgs/F5141416.png');
 }
 
 .side-header-container {
     display: flex;
     width: 100%;
-    height: 50px;
-    font-size: 24px;
+    height: 5vh;
+    font-size: 2.2vh;
     font-weight: bold;
     text-align: center;
     color: white;
@@ -32,7 +31,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: left;
-    padding-left: 50px;
+    padding-left: 5vh;
 }
 
 .red-side {
@@ -41,7 +40,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: right;
-    padding-right: 50px;
+    padding-right: 5vh;
 }
 
 .swap-button {
@@ -51,13 +50,14 @@ body {
     background-position: center;
     color: gray;
     font-family: 'BeaufortforLOL', sans-serif; 
-    font-size: 18px;
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: 1px solid gray;
-    margin-right: 20px;
-    width: 250px; 
-    height: 62.5px; 
+    font-size: 1.8vh;
+    padding: 1vh 2vh;
+    border-radius: 1vh;
+    border: 0.1vh solid gray;
+    margin-right: 2vh;
+    margin-bottom: 1vh;
+    width: 20vh; 
+    height: 5vh; 
     cursor: pointer;
     transition: opacity 0.3s ease-in-out; 
     position: relative;
@@ -65,76 +65,87 @@ body {
 
 .swap-button:hover{
     color: white;
-    border: 1px solid white;
+    border: 0.1vh solid white;
 }
 
 form {
-    margin-bottom: 20px;
+    margin-bottom: 2vh;
 }
 
 label {
     display: block;
-    margin: 5px 0 2px;
+    margin: 0.4vh 0 0.2vh;
 }
 
-input[type="text"] {
-    width: 300px;
-    margin-bottom: 10px;
+.box-label {
+    width: 30vh;
+    height: 3vh;
+    margin-bottom: 1vh;
     font-family: 'BeaufortforLOL', sans-serif;
     font-weight: normal; 
-    font-size: 16px; 
-    padding: 8px;
+    font-size: 1rem; 
+    padding: 0.7vh;
+    text-align: center;
+    font-size: 1rem;
 }
 
 input {
     background-color: black; 
     color: white;
-    border: 2px solid black;
-    border-bottom: 2px solid gray;
-    padding: 8px 12px; 
+    border: 0.2vh solid black;
+    border-bottom: 0.2vh solid gray;
+    padding: 0.7vh 1.1vh; 
     font-family: 'BeaufortforLOL', sans-serif; 
-    font-size: 16px; 
+    font-size: 1rem; 
     outline: none; 
     width: 100%; 
 }
 
 input:focus {
-    border-bottom: 2px solid white; 
+    border-bottom: 0.2vh solid white; 
 }
 
 .stacked-boxes-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.9vh;
     align-items: center;
+    padding: 1.2vh;
 }
 
 .stacked-box {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.9vh;
 }
 
-.box-label {
-    width: 120px;
-    height: 30px;
-    text-align: center;
-    font-size: 14px;
-    padding: 5px;
+.champions-table {
+    width: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
+
+#champion-search {
+    width: 88vh; 
+    padding: 1vh;
+    margin-bottom: 1vh; 
+    font-size: 1.6vh;
+}
+
 
 .box {
-    width: 8rem;
-    height: 8rem;
+    width: 12.8vh;
+    height: 12.8vh;
     background-size: cover;
     background-position: center;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 1vh;
+    box-shadow: 0 0.4vh 0.7vh rgba(0, 0, 0, 0.2);
     cursor: grab;
 }
 
 .scrollable-table {
-    max-height: 620px;
+    max-height: 64vh;
     overflow-y: auto;
 }
 
@@ -145,14 +156,14 @@ table {
 }
 
 td {
-    width: 150px;
-    height: 150px;
+    width: 15vh;
+    height: 15vh;
     background-size: cover;
     background-position: center;
 }
 
 ::-webkit-scrollbar {
-    width: 8px; 
+    width: 0.8vh; 
 }
 
 ::-webkit-scrollbar-track {
@@ -161,7 +172,7 @@ td {
 
 ::-webkit-scrollbar-thumb {
     background: #222;
-    border-radius: 10px;
+    border-radius: 1vh;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -174,7 +185,7 @@ td {
 }
 
 datalist {
-    max-height: 150px;
+    max-height: 15vh;
     overflow-y: auto;
     display: block;
 }
@@ -187,25 +198,29 @@ datalist {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 2vh;
 }
 
 .draft {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    gap: 20px;
-    padding: 20px;
+    gap: 2vh;
+    padding: 2vh;
+}
+
+.player-input {
+    margin-top: 6.4vh;
 }
 
 .error-message {
     color: red;
-    font-size: 12px;
+    font-size: 0.8rem;
     text-align: center;
     visibility: hidden;
     display: block;
-    height: 14px;
+    height: 1.3vh;
 }
 
 .winner-overlay {
@@ -219,12 +234,12 @@ datalist {
     color: white;
     font-size: 2rem;
     font-weight: bold;
-    padding: 20px 40px;
-    border-radius: 10px;
+    padding: 2vh 4vh;
+    border-radius: 1vh;
     text-align: center;
     z-index: 1000;
-    width: 400px; 
-    height: 200px; 
+    width: 40vh; 
+    height: 20vh; 
     align-items: center; 
     justify-content: center;
 }
@@ -238,15 +253,15 @@ datalist {
 
 .winner-overlay .chance-text {
     font-size: 1.5rem;
-    margin-top: 10px;
+    margin-top: 1vh;
 }
 
 .close-btn {
     position: absolute;
-    top: 10px;
-    right: 15px;
-    width: 30px;  
-    height: 30px;
+    top: 1vh;
+    right: 1.5vh;
+    width: 3vh;  
+    height: 3vh;
     cursor: pointer;
     opacity: 0.8;
     transition: opacity 0.2s ease-in-out;
@@ -275,7 +290,7 @@ datalist {
 .button-container {
     display: flex;
     justify-content: center;
-    margin-top: 10px;
+    margin-top: 1vh;
 }
 
 #predict-button, #predict-draft-button {
@@ -287,12 +302,12 @@ datalist {
     border: none; 
     color: gray;
     font-family: 'BeaufortforLOL', sans-serif; 
-    font-size: 18px;
-    padding: 10px 20px;
-    margin-right: 20px;
+    font-size: 1.1rem;
+    padding: 1vh 2vh;
+    margin-right: 2vh;
     cursor: not-allowed;
-    width: 250px; 
-    height: 62.5px; 
+    width: 25vh; 
+    height: 6.25vh; 
     transition: opacity 0.3s ease-in-out; 
     position: relative;
     user-select: none; 
@@ -313,3 +328,88 @@ datalist {
     background-image: url('assets/imgs/button-accept-hover.png');
     color: white;
 }
+
+.draft {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .dropeables-champions-container,
+  .player-inputs-container {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+  }
+
+  .controls-container {
+    display: flex;           
+    justify-content: center;   
+    align-items: center;     
+    gap: 1rem;                      
+  }
+  
+  
+  @media (max-width: 1350px) {
+
+    .draft {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #champion-search {
+        width: 80%;
+    }
+    
+    .champions-table {
+        width: 50%;
+    }
+
+    .player-input {
+        margin-top: 1vh;
+    }
+
+    .controls-container {
+        /* Switch to grid with exactly two columns */
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        /* The above means "2 columns, each 1 fraction of the available space." */
+        gap: 1rem; 
+      }
+      
+      /* Buttons span full width of their grid cell */
+      .swap-button {
+        width: 100%;
+        font-size: 1.3vh;
+      }
+  }
+
+  @media (max-width: 500px) {
+    html, body {
+        overflow-x: hidden;
+    }
+    .box {
+        width: 9vh;
+        height: 9vh;
+    }
+    .scrollable-table {
+        max-height: 43vh;
+    }
+    .stacked-boxes-container {
+        padding: 1vh;
+    }
+    .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2vh;
+        align-items: center;
+    }
+
+    #predict-button, #predict-draft-button {
+        font-size: 0.9rem;
+    }
+
+    .side-header-container {
+        font-size: 1.8vh;
+    }
+  }
